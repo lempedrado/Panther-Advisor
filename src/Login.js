@@ -1,6 +1,5 @@
 import './Login.css';
-import { BrowserRouter, Routes, Route , Link} from 'react-router-dom';
-import ScheduleBuilder from './ScheduleBuilder';
+import {Link} from 'react-router-dom';
 
 function Login() {
 

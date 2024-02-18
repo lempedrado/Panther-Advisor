@@ -1,17 +1,18 @@
-//import { useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRef } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import './ScheduleBuilder.css';
 
 import SideNav, { Toggle, Nav, NavItem, NavIcon, NavText } from '@trendmicro/react-sidenav';
 import '@trendmicro/react-sidenav/dist/react-sidenav.css';
 
-const ScheduleBuilder = () => {
+const Account = () => {
   const navigate = useNavigate();
+
   return (
     <body className="App">
       <div className="Header">
         <header className="App-header">
-          <SideNav
+        <SideNav
             onSelect={(selected) => {
               if(selected == "LogOut")
               {
@@ -70,13 +71,13 @@ const ScheduleBuilder = () => {
           <div className="logo" style={{ fontSize: 60 }}>
             {/* Make a logo that links to Profile
             <Link to='/'>Panther Advisor</Link> */}
-            Schedule Builder
+            Account
           </div>
         </header>
       </div>
-
+      
     </body>
   );
 }
 
-export default ScheduleBuilder;
+export default Account;
