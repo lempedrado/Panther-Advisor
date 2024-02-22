@@ -1,0 +1,56 @@
+Department,Course Number,Title
+MTH,141,Calculus I
+CSC,156,Discrete Structures
+CSC,171,Intro to Comp Programming (Lecture)
+CSC,175,Intermediate Computer Programming
+CSC,190,Computer Science Orientation Seminar
+PHI,232,Computer &amp; Information Ethics
+CSC,263,Database Management System
+CSC,273,Data Structures
+CSC,301,C and C++ Programming
+CSC,344,Algorithms and Complexity
+CSC,450,Computer Networks
+CSC,453,Operating Systems
+CSC,481,Computer Science Senior Seminar I
+CSC,482,Computer Science Senior Seminar II
+CSC,470,Internship in Computer Science
+MTH,142,Calculus II
+MTH,225,Statistics and Data Analytics
+CSC,272,Principles Of Programming Languages
+CSC,370,Computer Architecture and Organization
+CSC,440,Software Engineering
+CSC,233,Graphical User Interface Programming
+CSC,360,Human-Computer Interaction
+CSC,338,Mobile Application Development
+CSC,350,Web Programming
+MTH,114,Statistics for Natural  Sciences
+MTH,225,Statistics and Data Analytics
+CSC,280,Introduction to Cybersecurity
+CSC,282,Network and Cloud Security
+CSC,335,Introduction to Machine Learning
+CSC,381,Applied Cryptography
+CSC,382,Application Security
+MTH,142,Calculus II
+CSC,237,Game Programming
+MTH,250,Multivariable Mathematics
+CSC,333,Computer Graphics and Image Processing
+CSC,233,Graphical User Interface Programming
+CSC,360,Human-Computer Interaction
+CSC,337,3D Game Programming
+CSC,418,Extended Reality Engineering
+MTH,142,Calculus II
+MTH,253,Linear Algebra
+CSC,272,Principles Of Programming Languages
+CSC,370,Computer Architecture and Organization
+MTH,201,Bridge to Higher Mathematics
+MTH,351,Number Theory
+MTH,355,Symbolic Logic
+MTH,384,Computational Mathematics
+CHE,111,General Chemistry I
+PHY,113,Physics For Science Majors I
+PHY,114,Physics for Science Majors II
+MTH,142,Calculus II
+PHY,211,Mathematical Methods in Physics I
+MTH,243,Calculus III
+MTH,244,Introduction to Ordinary Differential Equations
+CSC,370,Computer Architecture and Organization
