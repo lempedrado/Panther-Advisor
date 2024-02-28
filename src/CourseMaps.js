@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 //import { parse } from "papaparse";
 //import Data from "./Course_Info.csv"
 import Papa from "papaparse";
-import './CourseMaps.css';
+import "./CourseMaps.css";
 
 import SideNav, {
   Toggle,
@@ -14,83 +14,40 @@ import SideNav, {
 } from "@trendmicro/react-sidenav";
 import "@trendmicro/react-sidenav/dist/react-sidenav.css";
 
-function CoursePlanner({ year, courses, selectedSemester }) {
-  const courseMapping = {
-    Freshman: [
-      "CSC 190 Computer Science Orientation Seminar",
-      "CSC 171 Introduction to Computer Programming (Lecture)",
-      "MTH 141 Calculus I",
-      "CSC 156 Discrete Structures",
-      "CSC 175 Intermediate Computer Programming",
-      "MTH 142 Calculus II",
-    ],
-    Sophomore: [
-      "CSC 263 Database Management System",
-      "CSC 301 C and C++ Programming",
-      "CSC 273 Data Structures",
-      "CSC 344 Algorithms and Complexity",
-      "PHI 232 Computer and Information Ethics",
-      "CSC 272 Principles of Programming Languages",
-    ],
-    Junior: [
-      "CSC 360 Human-Computer Interaction",
-      "CSC 338 Mobile Application Development",
-      "CSC 370 Computer Architecture and Organization",
-      "MTH 225 Statistics and Data Analytics",
-      "CSC 470 Internship in Computer Science",
-    ],
-    Senior: [
-      "CSC 440 Software Engineering",
-      "CSC 481 Computer Science Senior Seminar I",
-      "CSC 482 Computer Science Senior Seminar II",
-      "CSC 450 Computer Networks",
-      "CSC 453 Operating Systems",
-    ],
-  };
-
+function CoursePlanner({ track, courses, onClose }) {
   if (!courses || courses.length === 0) {
     return <div>Loading...</div>;
   }
-  let filteredCourses;
-  if (year === "All Courses") {
-    filteredCourses = courses;
-  } else {
-    filteredCourses = courses.filter((course) => {
-      const courseIdentifier = `${course.Department} ${course.CourseNumber} ${course.Title}`;
-      return courseMapping[year]?.includes(courseIdentifier);
-    });
-  }
 
-  if (selectedSemester !== "All Semesters") {
-    filteredCourses = filteredCourses.filter(
-      (course) => course.Semester === selectedSemester
-    );
-  }
+  let filteredCourses = courses.filter((course) => course.Track === track);
 
   return (
-    <div>
-      <h2>
-        {year} Courses for {selectedSemester}
-      </h2>
-      <div className="table-container">
-        <table>
-          <thead>
-            <tr>
-              <th>Department</th>
-              <th>Course Number</th>
-              <th>Title</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredCourses.map((course, index) => (
-              <tr key={index}>
-                <td>{course.Department}</td>
-                <td>{course.CourseNumber}</td>
-                <td>{course.Title}</td>
+    <div className="modal-background" onClick={onClose}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <h2>Courses for {track}</h2>
+        <div className="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Department</th>
+                <th>Course Number</th>
+                <th>Title</th>
+                <th>Credits</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {filteredCourses.map((course, index) => (
+                <tr key={index}>
+                  <td>{course.Department}</td>
+                  <td>{course.CourseNumber}</td>
+                  <td>{course.Title}</td>
+                  <td>{course.Credits}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <button onClick={onClose}>Close</button>
       </div>
     </div>
   );
@@ -99,8 +56,12 @@ function CoursePlanner({ year, courses, selectedSemester }) {
 const CourseMaps = () => {
   const navigate = useNavigate();
   const [courses, setCourses] = useState([]);
-  const [selectedYear, setSelectedYear] = useState("All Courses");
+  const [selectedTrack, setSelectedTrack] = useState(null);
+  const [tracks, setTracks] = useState([]);
+  const [flipState, setFlipState] = useState({});
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
+  
   useEffect(() => {
     const fetchCourses = async () => {
       try {
@@ -114,6 +75,17 @@ const CourseMaps = () => {
           skipEmptyLines: true,
           complete: (results) => {
             setCourses(results.data);
+            const uniqueTracks = [
+              ...new Set(results.data.map((course) => course.Track)),
+            ];
+            setTracks(uniqueTracks);
+
+            setFlipState(
+              uniqueTracks.reduce(
+                (acc, track) => ({ ...acc, [track]: false }),
+                {}
+              )
+            );
           },
           error: (error) => console.error("Error parsing CSV: ", error),
         });
@@ -123,7 +95,16 @@ const CourseMaps = () => {
     };
     fetchCourses();
   }, []);
-  const [selectedSemester, setSelectedSemester] = useState("All Semesters");
+  //const [selectedSemester, setSelectedSemester] = useState("All Semesters");
+
+  const handleFlip = (track) => {
+    setSelectedTrack(track); 
+    setIsModalOpen(true); 
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+  };
 
   return (
     <body className="App">
@@ -179,34 +160,36 @@ const CourseMaps = () => {
             <Link to='/'>Panther Advisor</Link> */}
             Course Maps
           </div>
+          <h3>Computer Science B.S</h3>
           <div className="course-planner">
-            <h3>Select Year or Semester:</h3>
-            <select
-              className="dropdown-year"
-              value={selectedYear}
-              onChange={(e) => setSelectedYear(e.target.value)}
-            >
-              <option value="All Courses">All Courses</option>
-              <option value="Freshman">Freshman</option>
-              <option value="Sophomore">Sophomore</option>
-              <option value="Junior">Junior</option>
-              <option value="Senior">Senior</option>
-            </select>
-            <select
-              className="dropdown-semester"
-              value={selectedSemester}
-              onChange={(e) => setSelectedSemester(e.target.value)}
-            >
-              <option value="All Semesters">All Semesters</option>
-              <option value="Spring">Spring</option>
-              <option value="Fall">Fall</option>
-            </select>
-            <CoursePlanner
-              year={selectedYear}
-              courses={courses}
-              selectedSemester={selectedSemester}
-            />
+            {tracks.map((track) => (
+              <div
+                key={track}
+                className="flip-card"
+                onClick={() => handleFlip(track)}
+              >
+                <div
+                  className={`flip-card-inner ${
+                    flipState[track] ? "flipped" : ""
+                  }`}
+                >
+                  <div className="flip-card-front">
+                    <h4>{track}</h4>
+                  </div>
+                  <div className="flip-card-back">
+                    <h4>Click to view courses</h4>{" "}
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
+          {isModalOpen && (
+            <CoursePlanner
+              track={selectedTrack}
+              courses={courses}
+              onClose={handleCloseModal}
+            />
+          )}
         </header>
       </div>
     </body>
