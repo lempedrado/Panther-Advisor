@@ -19,11 +19,12 @@
 
 /* The navigation menu links */
 .sidenav a {
-  padding: 8px 8px 8px 32px;
+  padding: 10px 0;
   text-decoration: none;
   font-size: 25px;
   color: #818181;
   display: block;
+  border-bottom: 1px solid #818181;
   transition: 0.3s;
 }
 
@@ -34,10 +35,9 @@
 
 /* Position and style the close button (top right corner) */
 .sidenav .closebtn {
-  position: absolute;
+  /* position: absolute; */
   background-color: transparent;
   border: none;
-  color: #818181;
   top: 0;
   right: 25px;
   font-size: 36px;
@@ -46,4 +46,51 @@
 
 .sidenav .closebtn:active {
   color: #f1f1f1;
+}
+.dropdown-year, .dropdown-semester {
+  padding: 8px 12px;
+  border: 1px solid black;
+  border-radius: 6px;
+  margin-right: 8px;
+  font-size: 16px;
+  background-color: white;
+  cursor: pointer;
+}
+.dropdown-year:focus, .dropdown-semester:focus{
+  outline: none;
+  border-color: gray;
+  box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+}
+
+.dropdown-year option, .dropdown-semester option{
+  padding: 10px;
+}
+.dropdown-year:hover, .dropdown-semester:hover {
+  border-color: #2980b9;
+}
+.selected-option{
+  background-color: #3498db;
+  color: white;
+}
+
+
+.table-container {
+  display: flex;
+  justify-content: center; /* Center table horizontally */
+  margin: 20px 0; /* Add some margin around the table for spacing */
+}
+
+table {
+  border-collapse: collapse; /* Collapse borders */
+  border: 2px solid white; /* Add a solid border */
+  margin-top: 20px; /* Optional: Add margin top for spacing */
+}
+
+th, td {
+  border: 1px solid white; /* Add border to table cells */
+  padding: 8px; /* Add some padding for content inside cells */
+}
+
+th {
+  background-color: black; /* Optional: Add background color to header cells */
 }

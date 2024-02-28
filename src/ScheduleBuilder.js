@@ -21,6 +21,7 @@ const ScheduleBuilder = () => {
     startTime: '',
     instructor: ''
   });
+  
 
   // Function to handle changes in search filters
   const handleFilterChange = (e) => {
