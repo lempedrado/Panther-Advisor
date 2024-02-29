@@ -13,14 +13,42 @@ const scrape = async function scrapeAndWriteToCSV() {
     var soup = new JSSoup(html);
 
     // extract data from the webpage
-    const data = [];
+    let data = [];
 
     //get the different cores of the requirements
     let cores = soup.findAll('div', 'acalog-core');
+    //get the track descriptions
+    let descriptions = cores.find((item) => {
+      return item.text.startsWith("TRACKS");
+    });
     cores = cores.filter((item) => {
       return item.text.startsWith("Computer Science Core") || item.text.startsWith("Track ");
     });
 
+    //get the descriptions of each track
+    let tracks = descriptions.find("hr").nextElement.nextSiblings;
+    for(let i = 0; i < tracks.length; i = i + 2)
+    {
+      data.push({
+        "track": tracks[i].text,
+        "description": tracks[i + 1].text
+      });
+    }
+
+    //Define CSV file structure
+    let csvWriter = createCsvWriter({
+      path: 'Track_Info.csv',
+      header: [
+        { id: 'track', title: 'Track' },
+        { id: 'description', title: 'Description' }
+      ]
+    });
+    await csvWriter.writeRecords(data);
+    console.log('CSV file has been written successfully.');
+    //clear data for next CSV file
+    data = [];
+
+    //get the requirements for each track
     cores.forEach((core, index) => {
       //get the track title or general CS requirements
       let track = core.find('h2').text;
@@ -55,7 +83,7 @@ const scrape = async function scrapeAndWriteToCSV() {
     });
 
     // Define CSV file structure
-    const csvWriter = createCsvWriter({
+    csvWriter = createCsvWriter({
       path: 'Course_Info.csv',
       header: [
         { id: 'department', title: 'Department' },
