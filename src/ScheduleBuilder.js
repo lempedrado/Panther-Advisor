@@ -15,7 +15,7 @@ const ScheduleBuilder = () => {
 
   // State variables for search filters
   const [searchFilters, setSearchFilters] = useState({
-    // "startTime": undefined,
+    //TODO "startTime": undefined,
     "department[]": undefined,    //allows multiple but we will limit to one option
     "level": "all",               //frosh, soph, junior, senior, ugrad
     "courseName": undefined,
@@ -29,21 +29,21 @@ const ScheduleBuilder = () => {
   });
 
   //creates the URL with form input values to ping results for scraper
-  function appendURL(input) {
-    const baseURL = "https://search.adelphi.edu/course-search/?";
-    //semester=24/02/*&campus[]=&level=all&school=all&courseName=&professorName=&distribution=&submitted=1
+  function appendURL() {
+    const baseURL = "https://search.adelphi.edu/course-search/?semester=all&";
 
     let post = "";
-    searchFilters.forEach((key, value) => {
-      if (value != undefined) {
+    Object.keys(searchFilters).map((key) => {
+      var val = searchFilters[key];
+      if (val !== undefined) {
         //if value has multiple values, append each element individually
-        if (value instanceof Array)
-          value.forEach(val => {
-            post += key + val + "&";
+        if (val instanceof Array)
+          val.forEach(val => {
+            post += key + "=" + val + "&";
           })
         //else append single value
         else
-          post += key + value + "&";
+          post += key + "=" + val + "&";
       }
     });
 
@@ -60,8 +60,11 @@ const ScheduleBuilder = () => {
   };
 
   // Function to handle search submission
-  const handleSearch = async function () {
-    // const link = appendURL()
+  const handleSearch = (event) => {
+    //prevents the page from refreshing on form submission
+    event.preventDefault();
+    const link = appendURL();
+    console.log(link);
     // const response = await axios.get(link);
     // Perform search based on searchFilters state
     console.log('Performing search with filters:', searchFilters);
@@ -133,7 +136,7 @@ const ScheduleBuilder = () => {
       </div>
       <div className="content">
         {/* Schedule container */}
-        <div className="schedule-container column">
+        <div className="schedule-container">
           {/* Schedule header showing days of the week */}
           <div className="schedule-header">
             <div className="time">Days</div>
@@ -147,24 +150,24 @@ const ScheduleBuilder = () => {
               <div key={day} className="day-slot">
                 <div className="day">{day}</div>
                 {/* Render empty slots for each time */}
-                {timesOfDay.map(() => (
-                  <div className="slot"></div>
+                {timesOfDay.map((slot) => (
+                  <div key={slot} className="slot"></div>
                 ))}
               </div>
             ))}
           </div>
         </div>
         {/* Search bar and filters aligned to the right */}
-        <div className="search-container column">
+        <div className="search-container">
           <form onSubmit={handleSearch}>
             <div className="search-filters">
-              <div>
-                <input className='search-box' type="text" name="department[]" placeholder="Department" value={searchFilters["department[]"]} onChange={handleFilterChange} />
+              <div className='column'>
+                <input className='search-box' type="text" name="department[]" placeholder="Department" value={searchFilters["department[]"] ?? ""} onChange={handleFilterChange} />
                 <br />
                 {/* <select name='department[]'>
                 generate options from file
                 </select> */}
-                <select className='search-box' name='level'>
+                <select className='search-box' name='level' onChange={handleFilterChange}>
                   <option value="all">All Course Levels</option>
                   <option value="frosh">Freshman</option>
                   <option value="soph">Sophomore</option>
@@ -173,11 +176,11 @@ const ScheduleBuilder = () => {
                   <option value="ugrad">Undergraduate</option>
                 </select>
                 <br />
-                <input className='search-box' type="text" name="courseName" placeholder="Course" value={searchFilters["courseName"]} onChange={handleFilterChange} />
+                <input className='search-box' type="text" name="courseName" placeholder="Course" value={searchFilters["courseName"] ?? ""} onChange={handleFilterChange} />
                 <br />
-                <input className='search-box' type="text" name="professorName" placeholder="Professor" value={searchFilters["professorName"]} onChange={handleFilterChange} />
+                <input className='search-box' type="text" name="professorName" placeholder="Professor" value={searchFilters["professorName"] ?? ""} onChange={handleFilterChange} />
                 <br />
-                <fieldset>
+                <fieldset onChange={handleFilterChange}>
                   <legend><h3>Location:</h3></legend>
                   <label>
                     <input type="radio" name="campus[]" value="NY" />
@@ -204,69 +207,77 @@ const ScheduleBuilder = () => {
                     &nbsp;SUNY Orange County CC
                   </label>
                 </fieldset>
-                {/* check boxes */}
                 <div>
-                  <h3>Mode of Instruction:</h3>
-                  <label>
-                    <input type="checkbox" name="methods[]" value="T,B," />
-                    &nbsp;Traditional
-                  </label><br />
-                  <label>
-                    <input type="checkbox" name="methods[]" value="O,O1,OA,OC,OS" />
-                    &nbsp;Online
-                  </label><br />
-                  <label>
-                    <input type="checkbox" name="methods[]" value="B,HF" />
-                    &nbsp;Blended
-                  </label>
+                  <fieldset onChange={handleFilterChange}>
+                    <legend><h3>Mode of Instruction:</h3></legend>
+                    <label>
+                      <input type="checkbox" name="methods[]" value="T,B," />
+                      &nbsp;Traditional
+                    </label><br />
+                    <label>
+                      <input type="checkbox" name="methods[]" value="O,O1,OA,OC,OS" />
+                      &nbsp;Online
+                    </label><br />
+                    <label>
+                      <input type="checkbox" name="methods[]" value="B,HF" />
+                      &nbsp;Blended
+                    </label>
+                  </fieldset>
                 </div>
               </div>
-              <div>
-                <div>
+              <div className='column'>
+                <fieldset onChange={handleFilterChange}>
                   <h3>Days:</h3>
                   <label>
                     <input type="checkbox" name="days[]" value="U" />
                     &nbsp;Sunday
                   </label>
+                  <br />
                   <label>
                     <input type="checkbox" name="days[]" value="M" />
                     &nbsp;Monday
                   </label>
+                  <br />
                   <label>
                     <input type="checkbox" name="days[]" value="T" />
                     &nbsp;Tuesday
                   </label>
+                  <br />
                   <label>
                     <input type="checkbox" name="days[]" value="W" />
                     &nbsp;Wednesday
                   </label>
+                  <br />
                   <label>
                     <input type="checkbox" name="days[]" value="R" />
                     &nbsp;Thursday
                   </label>
+                  <br />
                   <label>
                     <input type="checkbox" name="days[]" value="F" />
                     &nbsp;Friday
                   </label>
+                  <br />
                   <label>
                     <input type="checkbox" name="days[]" value="S" />
                     &nbsp;Saturday
                   </label>
+                  <br />
                   <label>
                     <input type="checkbox" name="days[]" value="X" />
                     &nbsp;TBA / Unspecified
                   </label>
-                </div>
+                  </fieldset>
                 <h3>Distribution Requirement:</h3>
-                <select className='search-box' name='distribution'>
-                  <option value>- Select One -</option>
+                <select className='search-box' name='distribution' onChange={handleFilterChange}>
+                  <option value="">- Select One -</option>
                   <option value="A">Arts</option>
                   <option value="FS">Mathematics, Computing & Logic</option>
                   <option value="H">Humanities</option>
                   <option value="NS">Natural Science</option>
                   <option value="SS">Social Science</option>
                 </select>
-                <div>
+                <fieldset onChange={handleFilterChange}>
                   <h3>Learning Goals:</h3>
                   <label>
                     <input type="checkbox" name="learnGoals[]" value="CO" />
@@ -288,7 +299,7 @@ const ScheduleBuilder = () => {
                     <input type="checkbox" name="learnGoals[]" value="Q" />
                     &nbsp;Quantitative Reasoning
                   </label>
-                </div>
+                </fieldset>
                 {/* <input type="text" name="startTime" placeholder="Start Time" value={searchFilters.startTime} onChange={handleFilterChange} /> */}
                 <br />
                 <label>
@@ -297,8 +308,8 @@ const ScheduleBuilder = () => {
                 </label>
               </div>
             </div>
+            <input type="submit" value="Search" />
           </form>
-          <input type="submit" value="Search" />
         </div>
       </div>
     </div>
