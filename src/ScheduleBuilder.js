@@ -2,10 +2,10 @@ import { useNavigate } from 'react-router-dom';
 import './General.css';
 import './ScheduleBuilder.css';
 import { useState } from 'react';
+import axios from 'axios';
 import SideNav, { Toggle, Nav, NavItem, NavIcon, NavText } from '@trendmicro/react-sidenav';
 
 var JSSoup = require('jssoup').default;
-const axios = require('axios');
 
 const ScheduleBuilder = () => {
   const navigate = useNavigate();
@@ -60,12 +60,28 @@ const ScheduleBuilder = () => {
   };
 
   // Function to handle search submission
-  const handleSearch = (event) => {
+  const handleSearch = async (event) => {
     //prevents the page from refreshing on form submission
     event.preventDefault();
     const link = appendURL();
-    console.log(link);
-    // const response = await axios.get(link);
+    console.log(link); //LOG
+    const proxy = 'https://cors-anywhere.herokuapp.com/' + link;
+    try {
+        //Fetch HTML content of the search results
+        const response = await axios.get(proxy);
+        const html = response.data;
+        //Parse HTML content with JSSoup
+        var soup = new JSSoup(html);
+        console.log(soup.prettify()); //LOG
+
+        let data = [];
+
+        let results = soup.findAll('address');
+        console.log(results);
+        console.log(typeof(results));
+    } catch (error) {
+      console.error('Error occured: ', error);
+    }
     // Perform search based on searchFilters state
     console.log('Performing search with filters:', searchFilters);
   };
@@ -229,11 +245,6 @@ const ScheduleBuilder = () => {
                 <fieldset onChange={handleFilterChange}>
                   <h3>Days:</h3>
                   <label>
-                    <input type="checkbox" name="days[]" value="U" />
-                    &nbsp;Sunday
-                  </label>
-                  <br />
-                  <label>
                     <input type="checkbox" name="days[]" value="M" />
                     &nbsp;Monday
                   </label>
@@ -256,11 +267,6 @@ const ScheduleBuilder = () => {
                   <label>
                     <input type="checkbox" name="days[]" value="F" />
                     &nbsp;Friday
-                  </label>
-                  <br />
-                  <label>
-                    <input type="checkbox" name="days[]" value="S" />
-                    &nbsp;Saturday
                   </label>
                   <br />
                   <label>
@@ -300,7 +306,7 @@ const ScheduleBuilder = () => {
                     &nbsp;Quantitative Reasoning
                   </label>
                 </fieldset>
-                {/* <input type="text" name="startTime" placeholder="Start Time" value={searchFilters.startTime} onChange={handleFilterChange} /> */}
+                {/* TODO <input type="text" name="startTime" placeholder="Start Time" value={searchFilters.startTime} onChange={handleFilterChange} /> */}
                 <br />
                 <label>
                   <input type="checkbox" name="status" value="Y" onChange={handleFilterChange} />
