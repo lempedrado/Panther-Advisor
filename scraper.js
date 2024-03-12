@@ -20,6 +20,7 @@ const scrape = async function scrapeAndWriteToCSV() {
     cores = cores.filter((item) => {
       return item.text.startsWith("Computer Science Core") || item.text.startsWith("Track ");
     });
+    
 
     cores.forEach((core, index) => {
       //get the track title or general CS requirements

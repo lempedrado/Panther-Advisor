@@ -14,12 +14,68 @@ import SideNav, {
 } from "@trendmicro/react-sidenav";
 import "@trendmicro/react-sidenav/dist/react-sidenav.css";
 
+
+const OPTIONAL_COURSE_GROUPS = {
+  "Software Engineering": [
+    {
+      title: "Choose one of the following two options:",
+      courses: ["233", "360"],
+    },
+    {
+      title: "Choose one of the following two options:",
+      courses: ["338", "350"],
+    },
+  ],
+  "Computer Graphics Programming": [
+    {
+      title: "Choose one of the following two options:",
+      courses: ["233", "360"],
+    },
+    {
+      title: "Choose one of the following two options:",
+      courses: ["337", "418"],
+    },
+  ],
+  "Foundations of Computer Science": [
+    {
+      title: "Choose one of the following three options:",
+      courses: ["351", "355", "384"],
+    },
+  ],
+};
+
 function CoursePlanner({ track, courses, onClose }) {
   if (!courses || courses.length === 0) {
     return <div>Loading...</div>;
   }
 
   let filteredCourses = courses.filter((course) => course.Track === track);
+  console.log(`Filtered courses for ${track}:`, filteredCourses.length);
+
+  let optionalGroups = OPTIONAL_COURSE_GROUPS[track] || [];
+
+  const isOptionalCourse = (courseNumber) => {
+    const found = optionalGroups.some(group => {
+      const match = group.courses.includes(courseNumber);
+      if (match) {
+        // test on console
+        console.log(`Matching optional course found: ${courseNumber}`);
+      } else {
+        // test on console
+        console.log(`No match for: ${courseNumber} in group`, group.courses);
+      }
+      return match;
+    });
+    return found;
+  };
+
+  const regularCourses = filteredCourses.filter(course => !isOptionalCourse(course.CourseNumber));
+  console.log(`Regular courses for ${track}:`, regularCourses.length);
+
+  optionalGroups.forEach((group, index) => {
+    const foundCourses = group.courses.filter(courseNumber => filteredCourses.some(c => c.CourseNumber === courseNumber));
+    console.log(`Optional group ${index} for ${track}:`, foundCourses.length);
+  });
 
   return (
     <div className="modal-background" onClick={onClose}>
@@ -36,13 +92,33 @@ function CoursePlanner({ track, courses, onClose }) {
               </tr>
             </thead>
             <tbody>
-              {filteredCourses.map((course, index) => (
+              {/* Render regular courses */}
+              {regularCourses.map((course, index) => (
                 <tr key={index}>
                   <td>{course.Department}</td>
                   <td>{course.CourseNumber}</td>
                   <td>{course.Title}</td>
                   <td>{course.Credits}</td>
                 </tr>
+              ))}
+              {/* Dynamically render optional groups */}
+              {optionalGroups.map((group, groupIndex) => (
+                <React.Fragment key={`group-${groupIndex}`}>
+                  <tr>
+                    <td colSpan="4" style={{textAlign: "center"}}><strong>{group.title}</strong></td>
+                  </tr>
+                  {group.courses.map(courseNumber => {
+                    const course = filteredCourses.find(c => c.CourseNumber === courseNumber);
+                    return (
+                      <tr key={`${courseNumber}-${groupIndex}`}>
+                        <td>{course?.Department}</td>
+                        <td>{course?.CourseNumber}</td>
+                        <td>{course?.Title}</td>
+                        <td>{course?.Credits}</td>
+                      </tr>
+                    );
+                  })}
+                </React.Fragment>
               ))}
             </tbody>
           </table>
