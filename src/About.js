@@ -1,9 +1,10 @@
 import { useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import './General.css';
 import './About.css';
+import schedule from './images/schedule.png';
 
 import SideNav, { Toggle, Nav, NavItem, NavIcon, NavText } from '@trendmicro/react-sidenav';
-import '@trendmicro/react-sidenav/dist/react-sidenav.css';
 
 const About = () => {
   const navigate = useNavigate();
@@ -14,13 +15,12 @@ const About = () => {
         <header className="App-header">
         <SideNav
             onSelect={(selected) => {
-              if(selected == "LogOut")
-              {
+              if (selected === "LogOut") {
                 navigate("/");
-                return;
+              } else {
+                const to = '/' + selected;
+                navigate(to);
               }
-              const to = '/' + selected;
-              navigate(to);
             }}
             className="sidenav"
           >
@@ -28,7 +28,7 @@ const About = () => {
             <Nav>
               <NavItem eventKey="ScheduleBuilder">
                 <NavIcon>
-                  <i style={{ fontSize: '1.75em' }} />
+                  <img className='sideNavIcon' src={require('./images/schedule.png')} alt='Schedule Builder' />
                 </NavIcon>
                 <NavText>
                   Schedule Builder
@@ -36,7 +36,7 @@ const About = () => {
               </NavItem>
               <NavItem eventKey="CourseMaps">
                 <NavIcon>
-                  <i style={{ fontSize: '1.75em' }} />
+                  <img className='sideNavIcon' src={require('./images/map.png')} alt='Course Maps' />
                 </NavIcon>
                 <NavText>
                   Course Maps
@@ -44,7 +44,7 @@ const About = () => {
               </NavItem>
               <NavItem eventKey="Account">
                 <NavIcon>
-                  <i style={{ fontSize: '1.75em' }} />
+                  <img className='sideNavIcon' src={require('./images/account.png')} alt='Account' />
                 </NavIcon>
                 <NavText>
                   Account
@@ -52,7 +52,7 @@ const About = () => {
               </NavItem>
               <NavItem eventKey="About">
                 <NavIcon>
-                  <i style={{ fontSize: '1.75em' }} />
+                  <img className='sideNavIcon' src={require('./images/info.png')} alt='About' />
                 </NavIcon>
                 <NavText>
                   About
@@ -60,7 +60,7 @@ const About = () => {
               </NavItem>
               <NavItem eventKey="LogOut">
                 <NavIcon>
-                  <i style={{ fontSize: '1.75em' }} />
+                  <img className='sideNavIcon' src={require('./images/logout.png')} alt='Log out' />
                 </NavIcon>
                 <NavText>
                   Logout

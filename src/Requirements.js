@@ -1,9 +1,9 @@
 import { useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import './ScheduleBuilder.css';
+import './General.css';
+import './Requirements.css';
 
 import SideNav, { Toggle, Nav, NavItem, NavIcon, NavText } from '@trendmicro/react-sidenav';
-import '@trendmicro/react-sidenav/dist/react-sidenav.css';
 
 const Requirements = () => {
   const navigate = useNavigate();
@@ -22,7 +22,6 @@ const Requirements = () => {
               const to = '/' + selected;
               navigate(to);
             }}
-            className="sidenav"
           >
             <Toggle />
             <Nav>

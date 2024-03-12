@@ -139,4 +139,19 @@ th {
   z-index: 3;
 }
 
+.track-descriptions {
+  max-width: 800px;
+  margin: 0 auto; 
+  padding: 20px; 
+}
+
+.track-descriptions h3 {
+  margin-top: 20px;
+}
+
+.track-descriptions p {
+  text-align: justify; 
+  margin-bottom: 20px;
+}
+
 

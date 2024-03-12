@@ -4,6 +4,10 @@ import { useNavigate } from "react-router-dom";
 //import Data from "./Course_Info.csv"
 import Papa from "papaparse";
 import "./CourseMaps.css";
+import { useRef } from 'react';
+import { Link } from 'react-router-dom';
+import './General.css';
+import './CourseMaps.css';
 
 import SideNav, {
   Toggle,
@@ -137,6 +141,8 @@ const CourseMaps = () => {
   const [flipState, setFlipState] = useState({});
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  const [trackInfo, setTrackInfo] = useState({});
+
   
   useEffect(() => {
     const fetchCourses = async () => {
@@ -168,6 +174,26 @@ const CourseMaps = () => {
       } catch (error) {
         console.error("Error fetching CSV: ", error);
       }
+      try {
+        const response = await fetch("/Track_Info.csv");
+        const reader = response.body.getReader();
+        const { value } = await reader.read();
+        const decoder = new TextDecoder("utf-8");
+        const csvData = decoder.decode(value);
+        Papa.parse(csvData, {
+          header: true,
+          skipEmptyLines: true,
+          complete: (results) => {
+            const descriptions = {};
+            results.data.forEach((item) => {
+              descriptions[item.Track] = item.Description;
+            });
+            setTrackInfo(descriptions);
+          }
+        });
+      } catch (error) {
+        console.error("Error fetching Track_Info.csv: ", error);
+      }
     };
     fetchCourses();
   }, []);
@@ -188,9 +214,11 @@ const CourseMaps = () => {
         <header className="App-header">
           <SideNav
             onSelect={(selected) => {
-              if (selected == "LogOut") {
+              if (selected === "LogOut") {
                 navigate("/");
-                return;
+              } else {
+                const to = '/' + selected;
+                navigate(to);
               }
               const to = "/" + selected;
               navigate(to);
@@ -201,31 +229,31 @@ const CourseMaps = () => {
             <Nav>
               <NavItem eventKey="ScheduleBuilder">
                 <NavIcon>
-                  <i style={{ fontSize: "1.75em" }} />
+                  <img className='sideNavIcon' src={require('./images/schedule.png')} alt='Schedule Builder' />
                 </NavIcon>
                 <NavText>Schedule Builder</NavText>
               </NavItem>
               <NavItem eventKey="CourseMaps">
                 <NavIcon>
-                  <i style={{ fontSize: "1.75em" }} />
+                  <img className='sideNavIcon' src={require('./images/map.png')} alt='Course Maps' />
                 </NavIcon>
                 <NavText>Course Maps</NavText>
               </NavItem>
               <NavItem eventKey="Account">
                 <NavIcon>
-                  <i style={{ fontSize: "1.75em" }} />
+                  <img className='sideNavIcon' src={require('./images/account.png')} alt='Account' />
                 </NavIcon>
                 <NavText>Account</NavText>
               </NavItem>
               <NavItem eventKey="About">
                 <NavIcon>
-                  <i style={{ fontSize: "1.75em" }} />
+                  <img className='sideNavIcon' src={require('./images/info.png')} alt='About' />
                 </NavIcon>
                 <NavText>About</NavText>
               </NavItem>
               <NavItem eventKey="LogOut">
                 <NavIcon>
-                  <i style={{ fontSize: "1.75em" }} />
+                  <img className='sideNavIcon' src={require('./images/logout.png')} alt='Log out' />
                 </NavIcon>
                 <NavText>Logout</NavText>
               </NavItem>
@@ -266,8 +294,18 @@ const CourseMaps = () => {
               onClose={handleCloseModal}
             />
           )}
+          <div className="track-descriptions">
+            <h2>Track Descriptions</h2>
+            {Object.entries(trackInfo).map(([track, description], index) => (
+              <div key={index}>
+                <h3>{track}</h3>
+                <p>{description}</p>
+              </div>
+            ))}
+          </div>
         </header>
       </div>
+      
     </body>
   );
 };
