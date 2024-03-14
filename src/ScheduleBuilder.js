@@ -13,6 +13,9 @@ const ScheduleBuilder = () => {
   const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
   const timesOfDay = ['8am', '9am', '10am', '11am', '12pm', '1pm', '2pm', '3pm', '4pm', '5pm', '6pm', '7pm', '8pm'];
 
+  const [results, setResults] = useState([]);
+  const [submitted, setSubmitted] = useState(false);
+  const [toggleRender, setToggle] = useState(false);
   // State variables for search filters
   const [searchFilters, setSearchFilters] = useState({
     //TODO "startTime": undefined,
@@ -27,12 +30,11 @@ const ScheduleBuilder = () => {
     "methods[]": undefined,
     "learnGoals[]": undefined,
   });
+  const baseURL = "https://search.adelphi.edu/course-search/";
 
   //creates the URL with form input values to ping results for scraper
   function appendURL() {
-    const baseURL = "https://search.adelphi.edu/course-search/?semester=all&";
-
-    let post = "";
+    let post = "?semester=all&";
     Object.keys(searchFilters).map((key) => {
       var val = searchFilters[key];
       if (val !== undefined) {
@@ -63,28 +65,149 @@ const ScheduleBuilder = () => {
   const handleSearch = async (event) => {
     //prevents the page from refreshing on form submission
     event.preventDefault();
+    setSubmitted(true);
+    setToggle(!toggleRender);
+    //get the link of the search results
     const link = appendURL();
     console.log(link); //LOG
     const proxy = 'https://cors-anywhere.herokuapp.com/' + link;
     try {
-        //Fetch HTML content of the search results
-        const response = await axios.get(proxy);
-        const html = response.data;
-        //Parse HTML content with JSSoup
-        var soup = new JSSoup(html);
-        console.log(soup.prettify()); //LOG
+      //Fetch HTML content of the search results
+      const response = await axios.get(proxy);
+      const html = response.data;
+      //Parse HTML content with JSSoup
+      var soup = new JSSoup(html);
 
-        let data = [];
+      let data = [];
 
-        let results = soup.findAll('address');
-        console.log(results);
-        console.log(typeof(results));
+      //address tag is only present when there are no results
+      let res = soup.findAll('address');
+      //if no address tag is found, there are results for this search
+      if (res.length == 0) {
+        //get the table of results
+        res = soup.findAll("table", "course-search-results")[0];
+
+        //get all rows of data
+        let rows = res.findAll("tr");
+        rows.map((e) => { console.log(e.text) }); //LOG
+
+        //skip first row, because it is a blank spacer
+        //iterate through each row of results to parse
+        for (let i = 1; i < rows.length; i++) {
+          let row = rows[i];
+          let child = row.nextElement;
+          console.log("child " + child.attrs); //LOG
+          if (child.attrs.class == "dep")
+            var dep = child.text;
+          else if (child.attrs.class == "crs")
+            var course = child.text;
+          else if (row.attrs.class == "details") {
+            //DOCS course row
+            let num = row.nextElement;  //DOCS td
+            console.log("row: " + row.prettify());  //LOG
+            const children = num.nextSiblings;  //DOCS remaining tds
+            console.log(num.nextElement.prettify()); //LOG instructor
+            let ref = num.nextElement.attrs.href ?? "";
+            if (ref != undefined)
+              ref = baseURL + ref.replace("&amp;", "&");
+            console.log(ref); //LOG
+            num = num.text;
+
+            //DOCS instructor row
+            console.log(children[0].prettify()); //LOG
+            let instructor = children[0].text;
+            let iRef = (children[0].nextElement.attrs.href != undefined) ? children[0].nextElement.attrs.href : "";
+            console.log("riRef" + iRef);
+
+            //DOCS semester info
+            let sem = children[1].text;
+
+            //XXX could be empty
+            //DOCS meeting days
+            let days = children[2].text.split("/");
+
+            //DOCS meeting times
+            let times = [];
+            console.log("times pre: " + children[3].prettify()); //LOG
+            if (children[3].text == "") { times = ["", ""]; }
+            else {
+              let t = children[3].text.split(" - ");
+              let start = t[0].split(":");
+              let end = t[1].split(":");
+              let d = new Date();
+              if (start[1].endsWith("pm"))
+                d.setHours(12 + (start[0] % 12));
+              else
+                d.setHours(start[0]);
+
+              d.setMinutes(start[1].slice(0, 3));
+              times.push(d.toISOString());
+
+              if (end[1].endsWith("pm"))
+                d.setHours(12 + (end[0] % 12));
+              else
+                d.setHours(end[0]);
+
+              d.setMinutes(end[1].slice(0, 3));
+              times.push(d.toISOString());
+            }
+            console.log(times); //LOG
+            let startTime = times[0];
+            let endTime = times[1];
+
+            //DOCS location, credits and notes
+            let location = children[4].text;
+            let credits = children[5].text;
+            let cap = children[6].text;
+
+            //create a dictionary for this listing
+            let item = {
+              "department": dep,
+              "title": course,
+              "number": num,
+              "courseRef": ref ?? "",
+              "instructor": instructor,
+              "instructorRef": iRef ?? "",
+              "semester": sem,
+              "days": days ?? "",
+              "startTime": startTime,
+              "endTime": endTime,
+              "location": location,
+              "credits": credits ?? "",
+              "cap": cap ?? ""
+            };
+            console.log("item: " + item);
+            //append item to results
+            data.push(item);
+          }
+        }
+      }
+      else
+        data.push([{ "title": "No courses match your parameters." }]);
+
+      setResults(data);
     } catch (error) {
       console.error('Error occured: ', error);
     }
     // Perform search based on searchFilters state
     console.log('Performing search with filters:', searchFilters);
   };
+
+  const renderResults = () => {
+    if (results.length == 0)
+      return <p>No courses match your parameters.</p>
+    else {
+      //render all results with map
+      return results.map((e, index) => {
+        return (
+          <div key={index} style={{ border: "2pt" }}>
+            <h3>{e.title}</h3>
+            <p><a className="courseLink" target="_blank" href={baseURL + e.courseRef}>{e.number}</a></p>
+            <p>{e.startTime} - {e.endTime}</p>
+          </div>);
+      });
+    }
+  }
 
   return (
     <div className="App">
@@ -273,7 +396,7 @@ const ScheduleBuilder = () => {
                     <input type="checkbox" name="days[]" value="X" />
                     &nbsp;TBA / Unspecified
                   </label>
-                  </fieldset>
+                </fieldset>
                 <h3>Distribution Requirement:</h3>
                 <select className='search-box' name='distribution' onChange={handleFilterChange}>
                   <option value="">- Select One -</option>
@@ -316,10 +439,13 @@ const ScheduleBuilder = () => {
             </div>
             <input type="submit" value="Search" />
           </form>
+          <div className='header'>
+            {submitted && renderResults()}
+          </div>
         </div>
       </div>
     </div>
   );
 }
 
-export default ScheduleBuilder
+export default ScheduleBuilder;
