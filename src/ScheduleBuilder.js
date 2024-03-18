@@ -15,7 +15,6 @@ const ScheduleBuilder = () => {
 
   const [results, setResults] = useState([]);
   const [submitted, setSubmitted] = useState(false);
-  const [toggleRender, setToggle] = useState(false);
   // State variables for search filters
   const [searchFilters, setSearchFilters] = useState({
     //TODO "startTime": undefined,
@@ -65,8 +64,6 @@ const ScheduleBuilder = () => {
   const handleSearch = async (event) => {
     //prevents the page from refreshing on form submission
     event.preventDefault();
-    setSubmitted(true);
-    setToggle(!toggleRender);
     //get the link of the search results
     const link = appendURL();
     console.log(link); //LOG
@@ -89,14 +86,13 @@ const ScheduleBuilder = () => {
 
         //get all rows of data
         let rows = res.findAll("tr");
-        rows.map((e) => { console.log(e.text) }); //LOG
+        // rows.map((e) => { console.log(e.text) }); //LOG
 
         //skip first row, because it is a blank spacer
         //iterate through each row of results to parse
         for (let i = 1; i < rows.length; i++) {
           let row = rows[i];
           let child = row.nextElement;
-          console.log("child " + child.attrs); //LOG
           if (child.attrs.class == "dep")
             var dep = child.text;
           else if (child.attrs.class == "crs")
@@ -104,25 +100,20 @@ const ScheduleBuilder = () => {
           else if (row.attrs.class == "details") {
             //DOCS course row
             let num = row.nextElement;  //DOCS td
-            console.log("row: " + row.prettify());  //LOG
             const children = num.nextSiblings;  //DOCS remaining tds
-            console.log(num.nextElement.prettify()); //LOG instructor
-            let ref = num.nextElement.attrs.href ?? "";
-            if (ref != undefined)
-              ref = baseURL + ref.replace("&amp;", "&");
-            console.log(ref); //LOG
+            let ref = "";
+            if (num.nextElement.attrs.href != undefined)
+              ref = baseURL + num.nextElement.attrs.href.replace("&amp;", "&");
             num = num.text;
 
             //DOCS instructor row
-            console.log(children[0].prettify()); //LOG
             let instructor = children[0].text;
-            let iRef = (children[0].nextElement.attrs.href != undefined) ? children[0].nextElement.attrs.href : "";
-            console.log("riRef" + iRef);
+            let tempRef = children[0].nextElement;
+            let iRef = (tempRef.attrs != undefined && tempRef.attrs.href != undefined) ? tempRef.attrs.href : "";
 
             //DOCS semester info
             let sem = children[1].text;
 
-            //XXX could be empty
             //DOCS meeting days
             let days = children[2].text.split("/");
 
@@ -141,6 +132,7 @@ const ScheduleBuilder = () => {
                 d.setHours(start[0]);
 
               d.setMinutes(start[1].slice(0, 3));
+              //TODO save as Date object and parse in render
               times.push(d.toISOString());
 
               if (end[1].endsWith("pm"))
@@ -165,9 +157,9 @@ const ScheduleBuilder = () => {
               "department": dep,
               "title": course,
               "number": num,
-              "courseRef": ref ?? "",
+              "courseRef": ref,
               "instructor": instructor,
-              "instructorRef": iRef ?? "",
+              "instructorRef": iRef,
               "semester": sem,
               "days": days ?? "",
               "startTime": startTime,
@@ -185,6 +177,7 @@ const ScheduleBuilder = () => {
       else
         data.push([{ "title": "No courses match your parameters." }]);
 
+      setSubmitted(true);
       setResults(data);
     } catch (error) {
       console.error('Error occured: ', error);
@@ -200,10 +193,10 @@ const ScheduleBuilder = () => {
       //render all results with map
       return results.map((e, index) => {
         return (
-          <div key={index} style={{ border: "2pt" }}>
+          <div key={index} style={{ border: "2px solid black", borderRadius: "25px" }}>
             <h3>{e.title}</h3>
-            <p><a className="courseLink" target="_blank" href={baseURL + e.courseRef}>{e.number}</a></p>
-            <p>{e.startTime} - {e.endTime}</p>
+            <p><a className="courseLink" target="_blank" href={"" + e.courseRef}>{e.number}</a></p>
+            <p><a className="courseLink" target="_blank" href={"" + e.instructorRef}>{e.instructor}</a></p>
           </div>);
       });
     }
@@ -276,25 +269,6 @@ const ScheduleBuilder = () => {
       <div className="content">
         {/* Schedule container */}
         <div className="schedule-container">
-          {/* Schedule header showing days of the week */}
-          <div className="schedule-header">
-            <div className="time">Days</div>
-            {timesOfDay.map(time => (
-              <div key={time} className="time">{time}</div>
-            ))}
-          </div>
-          {/* Schedule body displaying time slots */}
-          <div className="schedule-body">
-            {daysOfWeek.map(day => (
-              <div key={day} className="day-slot">
-                <div className="day">{day}</div>
-                {/* Render empty slots for each time */}
-                {timesOfDay.map((slot) => (
-                  <div key={slot} className="slot"></div>
-                ))}
-              </div>
-            ))}
-          </div>
         </div>
         {/* Search bar and filters aligned to the right */}
         <div className="search-container">

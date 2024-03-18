@@ -2,6 +2,7 @@
   display: flex;
   justify-content: space-between;
   padding: 20px;
+  padding-left: 64px; /* left padding for the nav-bar */
   column-count: 2;
   column-gap: 20px;
 }
@@ -34,43 +35,11 @@
 }
 
 .schedule-container {
-  display: flex;
+  padding-left: 20px;
+  display: block;
+  height: 100%;
+  width: 100%;
   margin-right: auto;
-}
-
-.schedule-header {
-  display: flex;
-  flex-direction: column;
-  width: 100px; /* Set a fixed width for the day column */
-}
-
-.schedule-body {
-  display: flex;
-  align-items: center;
-}
-
-.day, .time-slot {
-  border: 1px solid #010000;
-  padding: 10px;
-  margin-left: 10px;
-}
-
-.time {
-  font-weight: bold;
-  border: 1px solid #010000;
-  padding: 10px;
-  margin-left: 45px;
-}
-
-.slot {
-  height: 40px;
-  border-top: none;
-}
-
-.slot:hover {
-  background-color: #f0f0f0;
-  border: 1px solid #010000;
-  margin-left: 10px;
 }
 
 p {
