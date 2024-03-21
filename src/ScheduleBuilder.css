@@ -3,15 +3,16 @@
   justify-content: space-between;
   padding: 20px;
   padding-left: 64px; /* left padding for the nav-bar */
-  column-count: 2;
-  column-gap: 20px;
+  column-count: 3;
+  /* column-gap: 10px; */
 }
 
 .search-container {
-  display: flex;
+  display: block;
   flex-direction: column;
   align-items: flex-end;
-  /* margin-right: 20px; Pushes the search container to the right */
+  /* width: 30%; */
+  margin-left: 10px; /*Pushes the search container to the right */
 }
 
 .search-filters {
@@ -34,11 +35,24 @@
   padding: 8px;
 }
 
-.schedule-container {
-  padding-left: 20px;
+.results-container {
   display: block;
-  height: 100%;
-  width: 100%;
+  overflow-y: auto;
+  height: 90vh;
+  width: 20%;
+}
+
+.results-item {
+  border: 2px solid black;
+  border-radius: 25px;
+}
+
+.schedule-container {
+  padding-left: 10px;
+  padding-right: 20px;
+  display: block;
+  height: 90vh;
+  width: 50%;
   margin-right: auto;
 }
 

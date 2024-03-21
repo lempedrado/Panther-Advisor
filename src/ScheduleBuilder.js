@@ -1,20 +1,34 @@
 import { useNavigate } from 'react-router-dom';
 import './General.css';
 import './ScheduleBuilder.css';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import axios from 'axios';
 import SideNav, { Toggle, Nav, NavItem, NavIcon, NavText } from '@trendmicro/react-sidenav';
 
+import "react-big-calendar/lib/css/react-big-calendar.css";
+import { Calendar, momentLocalizer } from 'react-big-calendar';
+import withDragAndDrop from 'react-big-calendar/lib/addons/dragAndDrop'
+import moment from 'moment';
+
 var JSSoup = require('jssoup').default;
+
+const DnDCalendar = withDragAndDrop(Calendar);
+const localizer = momentLocalizer(moment) // or globalizeLocalizer
 
 const ScheduleBuilder = () => {
   const navigate = useNavigate();
 
-  const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+  const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  //Date reference for easy offsets, is a Monday
+  const dateRef = new Date(2024, 1, 1);
   const timesOfDay = ['8am', '9am', '10am', '11am', '12pm', '1pm', '2pm', '3pm', '4pm', '5pm', '6pm', '7pm', '8pm'];
 
   const [results, setResults] = useState([]);
   const [submitted, setSubmitted] = useState(false);
+  const [events, setEvents] = useState([]);
+  const [draggedEvent, setDraggedEvent] = useState();
+  const [counters, setCounters] = useState();
+  // const [displayDragItemInCell, setDisplayDragItemInCell] = useState(true);
   // State variables for search filters
   const [searchFilters, setSearchFilters] = useState({
     //TODO "startTime": undefined,
@@ -29,6 +43,51 @@ const ScheduleBuilder = () => {
     "methods[]": undefined,
     "learnGoals[]": undefined,
   });
+
+  const handleDragStart = useCallback((event) => setDraggedEvent(event), []);
+  // const dragFromOutsideItem = useCallback(() => draggedEvent, [draggedEvent]);
+
+  const newEvent = useCallback(
+    (event) => {
+      setEvents((prev) => {
+        const idList = prev.map((item) => item.id)
+        const newId = Math.max(...idList) + 1
+        return [...prev, { ...event, id: newId }]
+      })
+      // setEvents((prev) => {
+      //   const existing = prev.find((ev) => ev.id === event.id) ?? {};
+      //   const filtered = prev.filter((ev) => ev.id !== event.id);
+      //   const start = event.start;
+      //   const end = event.end;
+      //   const allDay = event.allDay;
+      //   return [...filtered, { ...existing, start, end, allDay }];
+      // });
+    },
+    [setEvents]
+  )
+
+  const onDropFromOutside = useCallback(
+    ({ start, end, allDay: isAllDay }) => {
+      if (draggedEvent === 'undroppable') {
+        setDraggedEvent(null);
+        return
+      }
+
+      const name = draggedEvent.title
+      const event = {
+        title: name,
+        start,
+        end,
+        isAllDay,
+      }
+      setDraggedEvent(null);
+      newEvent(event);
+    },
+    [draggedEvent, counters, setDraggedEvent, setCounters, newEvent]
+  );
+  //format the days of the week in Calendar
+  const formats = { "dayFormat": "ddd" };
+
   const baseURL = "https://search.adelphi.edu/course-search/";
 
   //creates the URL with form input values to ping results for scraper
@@ -86,7 +145,6 @@ const ScheduleBuilder = () => {
 
         //get all rows of data
         let rows = res.findAll("tr");
-        // rows.map((e) => { console.log(e.text) }); //LOG
 
         //skip first row, because it is a blank spacer
         //iterate through each row of results to parse
@@ -115,17 +173,24 @@ const ScheduleBuilder = () => {
             let sem = children[1].text;
 
             //DOCS meeting days
-            let days = children[2].text.split("/");
+            let temp = children[2].text.split("/");
+            let days = [];
+            temp.forEach((day) => {
+              if (daysOfWeek.indexOf(day) != -1)
+                days.push(daysOfWeek.indexOf(day));
+            });
+            console.log(days);
 
             //DOCS meeting times
             let times = [];
-            console.log("times pre: " + children[3].prettify()); //LOG
+            // console.log("times pre: " + children[3].prettify()); //LOG
             if (children[3].text == "") { times = ["", ""]; }
             else {
               let t = children[3].text.split(" - ");
               let start = t[0].split(":");
               let end = t[1].split(":");
-              let d = new Date();
+              //TODO idk format differently so dont use dateRef directly
+              let d = dateRef;
               if (start[1].endsWith("pm"))
                 d.setHours(12 + (start[0] % 12));
               else
@@ -133,7 +198,7 @@ const ScheduleBuilder = () => {
 
               d.setMinutes(start[1].slice(0, 3));
               //TODO save as Date object and parse in render
-              times.push(d.toISOString());
+              times.push(d.getTime());
 
               if (end[1].endsWith("pm"))
                 d.setHours(12 + (end[0] % 12));
@@ -141,9 +206,9 @@ const ScheduleBuilder = () => {
                 d.setHours(end[0]);
 
               d.setMinutes(end[1].slice(0, 3));
-              times.push(d.toISOString());
+              times.push(d.getTime());
             }
-            console.log(times); //LOG
+            // console.log(times); //LOG
             let startTime = times[0];
             let endTime = times[1];
 
@@ -153,22 +218,29 @@ const ScheduleBuilder = () => {
             let cap = children[6].text;
 
             //create a dictionary for this listing
+            //DOCS formatted like Event for BigCalendar
             let item = {
-              "department": dep,
+              "id": i,
               "title": course,
+              "start": startTime,
+              "end": endTime,
+              // "resource": {
               "number": num,
+              "department": dep,
               "courseRef": ref,
               "instructor": instructor,
               "instructorRef": iRef,
               "semester": sem,
               "days": days ?? "",
-              "startTime": startTime,
-              "endTime": endTime,
               "location": location,
               "credits": credits ?? "",
-              "cap": cap ?? ""
+              "cap": cap ?? "",
+              "isDraggable": false,
+              "allDay": location == "Online"
+              // }
             };
-            console.log("item: " + item);
+
+            // item.forEach((key, val) => console.log(key + ": " + val));
             //append item to results
             data.push(item);
           }
@@ -192,11 +264,24 @@ const ScheduleBuilder = () => {
     else {
       //render all results with map
       return results.map((e, index) => {
+        let start = new Date(e.start).toLocaleTimeString([], { "hour": '2-digit', "minute": '2-digit' });
+        let end = new Date(e.end).toLocaleTimeString([], { "hour": '2-digit', "minute": '2-digit' });
+        let d;
+        if (start != "Invalid Date")
+          d = start + " - " + end;
+        else
+          d = "Online";
         return (
-          <div key={index} style={{ border: "2px solid black", borderRadius: "25px" }}>
+          <div
+            key={index}
+            className="results-item"
+            draggable="true"
+            onDragStart={() => handleDragStart({ title: e.title, index })}
+          >
             <h3>{e.title}</h3>
             <p><a className="courseLink" target="_blank" href={"" + e.courseRef}>{e.number}</a></p>
             <p><a className="courseLink" target="_blank" href={"" + e.instructorRef}>{e.instructor}</a></p>
+            <p>{d}</p>
           </div>);
       });
     }
@@ -269,6 +354,22 @@ const ScheduleBuilder = () => {
       <div className="content">
         {/* Schedule container */}
         <div className="schedule-container">
+          <DnDCalendar
+            localizer={localizer}
+            toolbar={false}
+            defaultView='week'
+            defaultDate={dateRef}
+            min={dateRef.setHours(8)}
+            max={dateRef.setHours(21)}
+            events={events}
+            //might not need, look at docs
+            // dragFromOutsideItem={displayDragItemInCell ? dragFromOutsideItem : null}
+            onDropFromOutside={onDropFromOutside}
+            formats={formats}
+          />
+        </div>
+        <div className="results-container">
+          {submitted && renderResults()}
         </div>
         {/* Search bar and filters aligned to the right */}
         <div className="search-container">
@@ -413,9 +514,6 @@ const ScheduleBuilder = () => {
             </div>
             <input type="submit" value="Search" />
           </form>
-          <div className='header'>
-            {submitted && renderResults()}
-          </div>
         </div>
       </div>
     </div>
