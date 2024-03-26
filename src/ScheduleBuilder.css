@@ -47,6 +47,11 @@
   border-radius: 25px;
 }
 
+.results-item > p {
+  margin: 0px;
+  margin-bottom: 10px;
+}
+
 .schedule-container {
   padding-left: 10px;
   padding-right: 20px;

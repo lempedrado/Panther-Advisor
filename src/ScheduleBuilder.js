@@ -19,16 +19,14 @@ const ScheduleBuilder = () => {
   const navigate = useNavigate();
 
   const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-  //Date reference for easy offsets, is a Monday
-  const dateRef = new Date(2024, 1, 1);
-  const timesOfDay = ['8am', '9am', '10am', '11am', '12pm', '1pm', '2pm', '3pm', '4pm', '5pm', '6pm', '7pm', '8pm'];
+  //Date reference for easy offsets; January is 0; is a Monday
+  const dateRef = new Date(2024, 0, 1);
 
   const [results, setResults] = useState([]);
   const [submitted, setSubmitted] = useState(false);
   const [events, setEvents] = useState([]);
   const [draggedEvent, setDraggedEvent] = useState();
   const [counters, setCounters] = useState();
-  // const [displayDragItemInCell, setDisplayDragItemInCell] = useState(true);
   // State variables for search filters
   const [searchFilters, setSearchFilters] = useState({
     //TODO "startTime": undefined,
@@ -43,52 +41,57 @@ const ScheduleBuilder = () => {
     "methods[]": undefined,
     "learnGoals[]": undefined,
   });
-
-  const handleDragStart = useCallback((event) => setDraggedEvent(event), []);
-  // const dragFromOutsideItem = useCallback(() => draggedEvent, [draggedEvent]);
-
-  const newEvent = useCallback(
-    (event) => {
-      setEvents((prev) => {
-        const idList = prev.map((item) => item.id)
-        const newId = Math.max(...idList) + 1
-        return [...prev, { ...event, id: newId }]
-      })
-      // setEvents((prev) => {
-      //   const existing = prev.find((ev) => ev.id === event.id) ?? {};
-      //   const filtered = prev.filter((ev) => ev.id !== event.id);
-      //   const start = event.start;
-      //   const end = event.end;
-      //   const allDay = event.allDay;
-      //   return [...filtered, { ...existing, start, end, allDay }];
-      // });
-    },
-    [setEvents]
-  )
-
-  const onDropFromOutside = useCallback(
-    ({ start, end, allDay: isAllDay }) => {
-      if (draggedEvent === 'undroppable') {
-        setDraggedEvent(null);
-        return
-      }
-
-      const name = draggedEvent.title
-      const event = {
-        title: name,
-        start,
-        end,
-        isAllDay,
-      }
-      setDraggedEvent(null);
-      newEvent(event);
-    },
-    [draggedEvent, counters, setDraggedEvent, setCounters, newEvent]
-  );
   //format the days of the week in Calendar
   const formats = { "dayFormat": "ddd" };
-
   const baseURL = "https://search.adelphi.edu/course-search/";
+
+  const handleDragStart = useCallback((event) => setDraggedEvent(event), []);
+
+  const newEvent = useCallback((event) => {
+    setEvents((prev) => {
+      //list of the ids
+      const idList = prev.map((item) => item.id);
+      //the new id of the new event is 1 greater than the largest id
+      const newId = Math.max(...idList) + 1;
+      //add the new event with the newID to the list
+      return [...prev, { ...event, id: newId }];
+    })
+  },
+    [setEvents]
+  );
+
+  //FIXME creates duplicates but all in the same date even though start and end are different
+  const onDropFromOutside = useCallback(({ start, end, allDay: isAllDay }) => {
+    if (draggedEvent === 'undroppable') {
+      setDraggedEvent(null);
+      return
+    }
+
+    console.log(draggedEvent);  //LOG
+    const days = draggedEvent.days ?? [];
+    const length = days.length;
+    if(length === 0)
+    {
+      newEvent(draggedEvent);
+    }
+    else
+    {
+      const start2 = draggedEvent.start;
+      const end2 = draggedEvent.end;
+      for(var i = 0; i < length; i++)
+      {
+        start2.setDate(days[i]);
+        end2.setDate(days[i]);
+        console.log("start: " + start2.toISOString());
+        console.log("end: " + end2.toISOString());
+        const event = { ...draggedEvent, "start": start2, "end": end2 };
+        newEvent(event);
+      }
+    }
+    setDraggedEvent(null);
+  },
+    [draggedEvent, counters, setDraggedEvent, setCounters, newEvent]
+  );
 
   //creates the URL with form input values to ping results for scraper
   function appendURL() {
@@ -145,6 +148,7 @@ const ScheduleBuilder = () => {
 
         //get all rows of data
         let rows = res.findAll("tr");
+        let id = 0;
 
         //skip first row, because it is a blank spacer
         //iterate through each row of results to parse
@@ -174,22 +178,21 @@ const ScheduleBuilder = () => {
 
             //DOCS meeting days
             let temp = children[2].text.split("/");
+            //DOCS days is a list of numbers that correspond to the day of the week
             let days = [];
             temp.forEach((day) => {
               if (daysOfWeek.indexOf(day) != -1)
-                days.push(daysOfWeek.indexOf(day));
+                //+1 to get the day number for the Date object
+                days.push(daysOfWeek.indexOf(day) + 1);
             });
-            console.log(days);
 
             //DOCS meeting times
             let times = [];
-            // console.log("times pre: " + children[3].prettify()); //LOG
             if (children[3].text == "") { times = ["", ""]; }
             else {
               let t = children[3].text.split(" - ");
               let start = t[0].split(":");
               let end = t[1].split(":");
-              //TODO idk format differently so dont use dateRef directly
               let d = dateRef;
               if (start[1].endsWith("pm"))
                 d.setHours(12 + (start[0] % 12));
@@ -197,7 +200,6 @@ const ScheduleBuilder = () => {
                 d.setHours(start[0]);
 
               d.setMinutes(start[1].slice(0, 3));
-              //TODO save as Date object and parse in render
               times.push(d.getTime());
 
               if (end[1].endsWith("pm"))
@@ -208,7 +210,6 @@ const ScheduleBuilder = () => {
               d.setMinutes(end[1].slice(0, 3));
               times.push(d.getTime());
             }
-            // console.log(times); //LOG
             let startTime = times[0];
             let endTime = times[1];
 
@@ -220,11 +221,11 @@ const ScheduleBuilder = () => {
             //create a dictionary for this listing
             //DOCS formatted like Event for BigCalendar
             let item = {
-              "id": i,
+              "id": id,
               "title": course,
-              "start": startTime,
-              "end": endTime,
-              // "resource": {
+              "start": new Date(startTime),
+              "end": new Date(endTime),
+              "allDay": location == "Online",
               "number": num,
               "department": dep,
               "courseRef": ref,
@@ -235,12 +236,9 @@ const ScheduleBuilder = () => {
               "location": location,
               "credits": credits ?? "",
               "cap": cap ?? "",
-              "isDraggable": false,
-              "allDay": location == "Online"
-              // }
+              "isDraggable": false
             };
-
-            // item.forEach((key, val) => console.log(key + ": " + val));
+            id++;
             //append item to results
             data.push(item);
           }
@@ -264,8 +262,8 @@ const ScheduleBuilder = () => {
     else {
       //render all results with map
       return results.map((e, index) => {
-        let start = new Date(e.start).toLocaleTimeString([], { "hour": '2-digit', "minute": '2-digit' });
-        let end = new Date(e.end).toLocaleTimeString([], { "hour": '2-digit', "minute": '2-digit' });
+        let start = e.start.toLocaleTimeString([], { "hour": '2-digit', "minute": '2-digit' });
+        let end = e.end.toLocaleTimeString([], { "hour": '2-digit', "minute": '2-digit' });
         let d;
         if (start != "Invalid Date")
           d = start + " - " + end;
@@ -276,7 +274,7 @@ const ScheduleBuilder = () => {
             key={index}
             className="results-item"
             draggable="true"
-            onDragStart={() => handleDragStart({ title: e.title, index })}
+            onDragStart={() => {console.log(e); handleDragStart({...e})}}
           >
             <h3>{e.title}</h3>
             <p><a className="courseLink" target="_blank" href={"" + e.courseRef}>{e.number}</a></p>
@@ -362,10 +360,10 @@ const ScheduleBuilder = () => {
             min={dateRef.setHours(8)}
             max={dateRef.setHours(21)}
             events={events}
-            //might not need, look at docs
-            // dragFromOutsideItem={displayDragItemInCell ? dragFromOutsideItem : null}
             onDropFromOutside={onDropFromOutside}
             formats={formats}
+            dayLayoutAlgorithm={'no-overlap'}
+          // TODO onDoubleClickEvent={} to display info and delete from schedule
           />
         </div>
         <div className="results-container">
