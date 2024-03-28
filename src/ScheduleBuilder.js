@@ -26,7 +26,6 @@ const ScheduleBuilder = () => {
   const [submitted, setSubmitted] = useState(false);
   const [events, setEvents] = useState([]);
   const [draggedEvent, setDraggedEvent] = useState();
-  const [counters, setCounters] = useState();
   // State variables for search filters
   const [searchFilters, setSearchFilters] = useState({
     //TODO "startTime": undefined,
@@ -49,49 +48,42 @@ const ScheduleBuilder = () => {
 
   const newEvent = useCallback((event) => {
     setEvents((prev) => {
-      //list of the ids
-      const idList = prev.map((item) => item.id);
-      //the new id of the new event is 1 greater than the largest id
-      const newId = Math.max(...idList) + 1;
-      //add the new event with the newID to the list
-      return [...prev, { ...event, id: newId }];
+      return [...prev, { ...event }];
     })
   },
     [setEvents]
   );
 
-  //FIXME creates duplicates but all in the same date even though start and end are different
-  const onDropFromOutside = useCallback(({ start, end, allDay: isAllDay }) => {
+  const onDropFromOutside = () => {
     if (draggedEvent === 'undroppable') {
       setDraggedEvent(null);
-      return
+      return;
     }
-
-    console.log(draggedEvent);  //LOG
     const days = draggedEvent.days ?? [];
     const length = days.length;
-    if(length === 0)
-    {
+    if (length === 0) {
       newEvent(draggedEvent);
     }
-    else
-    {
-      const start2 = draggedEvent.start;
-      const end2 = draggedEvent.end;
-      for(var i = 0; i < length; i++)
-      {
-        start2.setDate(days[i]);
-        end2.setDate(days[i]);
-        console.log("start: " + start2.toISOString());
-        console.log("end: " + end2.toISOString());
-        const event = { ...draggedEvent, "start": start2, "end": end2 };
+    else {
+      let newId = 0;
+      if (events.length > 0) {
+        let idList = events.map((item) => item.id);
+        //the new id of the new event is 1 greater than the largest id
+        newId = Math.max(...idList) + 1;
+      }
+      for (var i = 0; i < days.length; i++) {
+        var start = new Date(draggedEvent.start);
+        var end = new Date(draggedEvent.end);
+        start.setDate(days[i]);
+        end.setDate(days[i]);
+        var event = { ...draggedEvent, start: start, end: end, id: newId };
+        console.log(event); //LOG
+        newId++;
         newEvent(event);
       }
     }
     setDraggedEvent(null);
-  },
-    [draggedEvent, counters, setDraggedEvent, setCounters, newEvent]
-  );
+  }
 
   //creates the URL with form input values to ping results for scraper
   function appendURL() {
@@ -188,7 +180,7 @@ const ScheduleBuilder = () => {
 
             //DOCS meeting times
             let times = [];
-            if (children[3].text == "") { times = ["", ""]; }
+            if (children[3].text == "") { times = [undefined, undefined]; }
             else {
               let t = children[3].text.split(" - ");
               let start = t[0].split(":");
@@ -218,6 +210,8 @@ const ScheduleBuilder = () => {
             let credits = children[5].text;
             let cap = children[6].text;
 
+            let allDay = (startTime == undefined && endTime == undefined);
+
             //create a dictionary for this listing
             //DOCS formatted like Event for BigCalendar
             let item = {
@@ -225,14 +219,14 @@ const ScheduleBuilder = () => {
               "title": course,
               "start": new Date(startTime),
               "end": new Date(endTime),
-              "allDay": location == "Online",
+              "allDay": allDay,
               "number": num,
               "department": dep,
               "courseRef": ref,
               "instructor": instructor,
               "instructorRef": iRef,
               "semester": sem,
-              "days": days ?? "",
+              "days": days ?? [],
               "location": location,
               "credits": credits ?? "",
               "cap": cap ?? "",
@@ -274,7 +268,7 @@ const ScheduleBuilder = () => {
             key={index}
             className="results-item"
             draggable="true"
-            onDragStart={() => {console.log(e); handleDragStart({...e})}}
+            onDragStart={() => { console.log(e); handleDragStart({ ...e }) }}
           >
             <h3>{e.title}</h3>
             <p><a className="courseLink" target="_blank" href={"" + e.courseRef}>{e.number}</a></p>
@@ -436,10 +430,19 @@ const ScheduleBuilder = () => {
                     </label>
                   </fieldset>
                 </div>
+                <label>
+                  <input type="checkbox" name="status" value="Y" onChange={handleFilterChange} />
+                  &nbsp;Hide full, closed, and cancelled courses
+                </label>
               </div>
               <div className='column'>
                 <fieldset onChange={handleFilterChange}>
                   <h3>Days:</h3>
+                  <label>
+                    <input type="checkbox" name="days[]" value="N" />
+                    &nbsp;Sunday
+                  </label>
+                  <br />
                   <label>
                     <input type="checkbox" name="days[]" value="M" />
                     &nbsp;Monday
@@ -463,6 +466,11 @@ const ScheduleBuilder = () => {
                   <label>
                     <input type="checkbox" name="days[]" value="F" />
                     &nbsp;Friday
+                  </label>
+                  <br />
+                  <label>
+                    <input type="checkbox" name="days[]" value="S" />
+                    &nbsp;Saturday
                   </label>
                   <br />
                   <label>
@@ -503,11 +511,6 @@ const ScheduleBuilder = () => {
                   </label>
                 </fieldset>
                 {/* TODO <input type="text" name="startTime" placeholder="Start Time" value={searchFilters.startTime} onChange={handleFilterChange} /> */}
-                <br />
-                <label>
-                  <input type="checkbox" name="status" value="Y" onChange={handleFilterChange} />
-                  &nbsp;Hide full, closed, and cancelled courses
-                </label>
               </div>
             </div>
             <input type="submit" value="Search" />
