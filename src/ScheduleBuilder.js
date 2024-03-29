@@ -4,16 +4,23 @@ import './ScheduleBuilder.css';
 import { useState, useCallback } from 'react';
 import axios from 'axios';
 import SideNav, { Toggle, Nav, NavItem, NavIcon, NavText } from '@trendmicro/react-sidenav';
-
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import { Calendar, momentLocalizer } from 'react-big-calendar';
-import withDragAndDrop from 'react-big-calendar/lib/addons/dragAndDrop'
+import withDragAndDrop from 'react-big-calendar/lib/addons/dragAndDrop';
 import moment from 'moment';
+
+import Dialog from "@material-ui/core/Dialog";
+import DialogContentText from "@material-ui/core/DialogContentText";
+import DialogTitle from "@material-ui/core/DialogTitle";
+import DialogActions from "@material-ui/core/DialogActions";
+import DialogContent from "@material-ui/core/DialogContent";
 
 var JSSoup = require('jssoup').default;
 
 const DnDCalendar = withDragAndDrop(Calendar);
 const localizer = momentLocalizer(moment) // or globalizeLocalizer
+const COLORS = ["AliceBlue", "AntiqueWhite", "Aqua", "Aquamarine", "Beige", "Bisque", "BlanchedAlmond", "Blue", "BlueViolet", "Brown", "BurlyWood", "CadetBlue", "Chocolate", "Coral", "CornflowerBlue", "Crimson", "DarkBlue", "DarkCyan", "DarkGoldenRod", "DarkGray", "DarkGreen", "DarkKhaki", "DarkMagenta", "DarkOliveGreen", "Darkorange", "DarkOrchid", "DarkRed", "DarkSalmon", "DarkSeaGreen", "DarkSlateBlue", "DarkSlateGray", "DarkTurquoise", "DarkViolet", "DeepSkyBlue", "DimGray", "DodgerBlue", "FireBrick", "ForestGreen", "Gold", "GoldenRod", "Gray", "Green", "HotPink", "IndianRed", "Indigo", "Khaki", "Lavender", "LavenderBlush", "LemonChiffon", "LightBlue", "LightCoral", "LightCyan", "LightGoldenRodYellow", "LightGray", "LightGreen", "LightPink", "LightSalmon", "LightSeaGreen", "LightSkyBlue", "LightSlateGray", "LightSteelBlue", "LimeGreen", "Maroon", "MediumAquaMarine", "MediumOrchid", "MediumPurple", "MediumSeaGreen", "MediumSlateBlue", "MediumSpringGreen", "MediumTurquoise", "MediumVioletRed", "MidnightBlue", "MistyRose", "Moccasin", "Navy", "Olive", "Orange", "OrangeRed", "Orchid", "PaleGoldenRod", "PaleGreen", "PaleTurquoise", "PaleVioletRed", "PeachPuff", "Peru", "Pink", "Plum", "PowderBlue", "Purple", "RosyBrown", "RoyalBlue", "SaddleBrown", "Salmon", "SandyBrown", "SeaGreen", "Sienna", "Silver", "SkyBlue", "SlateBlue", "SlateGray", "SpringGreen", "SteelBlue", "Tan", "Teal", "Thistle", "Tomato", "Turquoise", "Violet", "Wheat"];
+let color = 0;
 
 const ScheduleBuilder = () => {
   const navigate = useNavigate();
@@ -21,11 +28,18 @@ const ScheduleBuilder = () => {
   const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   //Date reference for easy offsets; January is 0; is a Monday
   const dateRef = new Date(2024, 0, 1);
-
+  //holds the search results
   const [results, setResults] = useState([]);
+  //state var checking if the form was submitted to render the results
   const [submitted, setSubmitted] = useState(false);
+  //the events added to the schedule
   const [events, setEvents] = useState([]);
+  //the event being dragged
   const [draggedEvent, setDraggedEvent] = useState();
+  //the event to view in the Dialog box
+  const [clickedEvent, setClickedEvent] = useState();
+  //state to toggle the course info Dialog
+  const [isOpen, setIsOpen] = useState(false);
   // State variables for search filters
   const [searchFilters, setSearchFilters] = useState({
     //TODO "startTime": undefined,
@@ -46,6 +60,7 @@ const ScheduleBuilder = () => {
 
   const handleDragStart = useCallback((event) => setDraggedEvent(event), []);
 
+  //adds a new event to the schedule
   const newEvent = useCallback((event) => {
     setEvents((prev) => {
       return [...prev, { ...event }];
@@ -54,15 +69,20 @@ const ScheduleBuilder = () => {
     [setEvents]
   );
 
+  //handles courses being dropped onto the schedule
   const onDropFromOutside = () => {
-    if (draggedEvent === 'undroppable') {
+    //if this course is already in the schedule, do nothing
+    if (events.filter(e => e.itemID == draggedEvent.itemID).length > 0) {
       setDraggedEvent(null);
       return;
     }
     const days = draggedEvent.days ?? [];
     const length = days.length;
+    const backgroundColor = COLORS[color];
+    color = (color + 1) % COLORS.length;
     if (length === 0) {
-      newEvent(draggedEvent);
+      var event = { ...draggedEvent, backgroundColor };
+      newEvent(event);
     }
     else {
       let newId = 0;
@@ -71,18 +91,59 @@ const ScheduleBuilder = () => {
         //the new id of the new event is 1 greater than the largest id
         newId = Math.max(...idList) + 1;
       }
-      for (var i = 0; i < days.length; i++) {
+      //creates an array of the ids for each new event
+      let ids = days.map((val, idx) => newId + idx);
+      for (var i = 0; i < length; i++) {
         var start = new Date(draggedEvent.start);
         var end = new Date(draggedEvent.end);
         start.setDate(days[i]);
         end.setDate(days[i]);
-        var event = { ...draggedEvent, start: start, end: end, id: newId };
+        //get the ids of the other events that refer to this course
+        let refs = ids.filter((val) => val != newId);
+        var event = { ...draggedEvent, start, end, id: newId, refs: refs, backgroundColor };
         console.log(event); //LOG
         newId++;
         newEvent(event);
       }
     }
     setDraggedEvent(null);
+  }
+
+  //Shows a course's information and option to remove when double clicked
+  const showDialog = () => {
+    let days = [];
+    clickedEvent.days.forEach((val) => days.push(daysOfWeek[val - 1]));
+    let start = clickedEvent.start.toLocaleTimeString([], { "hour": '2-digit', "minute": '2-digit' });
+    let end = clickedEvent.end.toLocaleTimeString([], { "hour": '2-digit', "minute": '2-digit' });
+    let t;
+    if (start != "Invalid Date")
+      t = start + " - " + end;
+    else
+      t = "Online";
+    return (
+      <Dialog open={isOpen} onClose={() => setIsOpen(false)}>
+        <DialogTitle>{clickedEvent.title}</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            <div><strong>Department: </strong>{clickedEvent.department}</div>
+            <div><strong>Semester: </strong>{clickedEvent.semester}</div>
+            <div><strong>Instructor: </strong><a target='_blank' href={"" + clickedEvent.instructorRef}>{clickedEvent.instructor}</a></div>
+            <div><strong>Number: </strong><a target='_blank' href={"" + clickedEvent.courseRef}>{clickedEvent.number}</a></div>
+            <div><strong>Meeting Dates:</strong> {days.join("/")} {t}</div>
+            <div><strong>Location: </strong>{clickedEvent.location}</div>
+            <div><strong>Credits: </strong>{clickedEvent.credits}</div>
+            <div><strong>{clickedEvent.cap}</strong></div>
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <button onClick={{/* TODO make func to remove event with id and events with ref ids from events*/ }}>
+            Remove
+          </button>
+          <button onClick={() => setIsOpen(false)}>
+            Close
+          </button>
+        </DialogActions>
+      </Dialog>);
   }
 
   //creates the URL with form input values to ping results for scraper
@@ -152,25 +213,25 @@ const ScheduleBuilder = () => {
           else if (child.attrs.class == "crs")
             var course = child.text;
           else if (row.attrs.class == "details") {
-            //DOCS course row
-            let num = row.nextElement;  //DOCS td
-            const children = num.nextSiblings;  //DOCS remaining tds
+            //course row
+            let num = row.nextElement;  //td
+            const children = num.nextSiblings;  //remaining tds
             let ref = "";
             if (num.nextElement.attrs.href != undefined)
               ref = baseURL + num.nextElement.attrs.href.replace("&amp;", "&");
             num = num.text;
 
-            //DOCS instructor row
+            //instructor row
             let instructor = children[0].text;
             let tempRef = children[0].nextElement;
             let iRef = (tempRef.attrs != undefined && tempRef.attrs.href != undefined) ? tempRef.attrs.href : "";
 
-            //DOCS semester info
+            //semester info
             let sem = children[1].text;
 
-            //DOCS meeting days
+            //meeting days
             let temp = children[2].text.split("/");
-            //DOCS days is a list of numbers that correspond to the day of the week
+            //days is a list of numbers that correspond to the day of the week
             let days = [];
             temp.forEach((day) => {
               if (daysOfWeek.indexOf(day) != -1)
@@ -178,7 +239,7 @@ const ScheduleBuilder = () => {
                 days.push(daysOfWeek.indexOf(day) + 1);
             });
 
-            //DOCS meeting times
+            //meeting times
             let times = [];
             if (children[3].text == "") { times = [undefined, undefined]; }
             else {
@@ -205,17 +266,16 @@ const ScheduleBuilder = () => {
             let startTime = times[0];
             let endTime = times[1];
 
-            //DOCS location, credits and notes
+            //location, credits and notes
             let location = children[4].text;
             let credits = children[5].text;
             let cap = children[6].text;
 
             let allDay = (startTime == undefined && endTime == undefined);
 
-            //create a dictionary for this listing
-            //DOCS formatted like Event for BigCalendar
+            //create an object for this listing
             let item = {
-              "id": id,
+              "itemID": id,
               "title": course,
               "start": new Date(startTime),
               "end": new Date(endTime),
@@ -238,8 +298,6 @@ const ScheduleBuilder = () => {
           }
         }
       }
-      else
-        data.push([{ "title": "No courses match your parameters." }]);
 
       setSubmitted(true);
       setResults(data);
@@ -258,22 +316,24 @@ const ScheduleBuilder = () => {
       return results.map((e, index) => {
         let start = e.start.toLocaleTimeString([], { "hour": '2-digit', "minute": '2-digit' });
         let end = e.end.toLocaleTimeString([], { "hour": '2-digit', "minute": '2-digit' });
-        let d;
+        let t;
         if (start != "Invalid Date")
-          d = start + " - " + end;
+          t = start + " - " + end;
         else
-          d = "Online";
+          t = "Online";
+        let days = "";
+        e.days.forEach((val) => days += daysOfWeek[val - 1] + " ");
         return (
           <div
             key={index}
             className="results-item"
             draggable="true"
-            onDragStart={() => { console.log(e); handleDragStart({ ...e }) }}
+            onDragStart={() => { handleDragStart({ ...e }) }}
           >
             <h3>{e.title}</h3>
-            <p><a className="courseLink" target="_blank" href={"" + e.courseRef}>{e.number}</a></p>
             <p><a className="courseLink" target="_blank" href={"" + e.instructorRef}>{e.instructor}</a></p>
-            <p>{d}</p>
+            <p>{t}</p>
+            <p>{days}</p>
           </div>);
       });
     }
@@ -356,8 +416,12 @@ const ScheduleBuilder = () => {
             events={events}
             onDropFromOutside={onDropFromOutside}
             formats={formats}
+            eventPropGetter={event => {
+              var backgroundColor = event.backgroundColor
+              return { style: { backgroundColor, color: "black" } }
+            }}
             dayLayoutAlgorithm={'no-overlap'}
-          // TODO onDoubleClickEvent={} to display info and delete from schedule
+            onDoubleClickEvent={(event) => { setClickedEvent(event); setIsOpen(true); }}
           />
         </div>
         <div className="results-container">
@@ -517,6 +581,7 @@ const ScheduleBuilder = () => {
           </form>
         </div>
       </div>
+      {isOpen && showDialog()}
     </div>
   );
 }

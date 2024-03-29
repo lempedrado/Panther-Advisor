@@ -11,7 +11,6 @@ import ScheduleBuilder from './ScheduleBuilder';
 import Account from './Account';
 import CourseMaps from './CourseMaps';
 import About from './About';
-import Requirements from './Requirements';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
@@ -38,10 +37,6 @@ root.render(
         <Route
           path="/About"
           element={<About />}
-        />
-        <Route
-          path="/Requirements"
-          element={<Requirements />}
         />
       </Routes>
     </BrowserRouter>

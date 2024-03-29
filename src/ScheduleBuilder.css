@@ -76,3 +76,7 @@ fieldset {
 .courseLink {
   color: gray;
 }
+
+a {
+  color: lightslategray;
+}
