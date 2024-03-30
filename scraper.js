@@ -24,6 +24,7 @@ const scrape = async function scrapeAndWriteToCSV() {
     cores = cores.filter((item) => {
       return item.text.startsWith("Computer Science Core") || item.text.startsWith("Track ");
     });
+    
 
     //get the descriptions of each track
     let tracks = descriptions.find("hr").nextElement.nextSiblings;

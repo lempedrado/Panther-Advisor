@@ -7,7 +7,7 @@
   left: 0;
   z-index: 1006;
   min-width: 64px;
-  background-color: #46271b;
+  background-color: #46271b !important;
   -webkit-transition: min-width 0.2s;
   -moz-transition: min-width 0.2s;
   -o-transition: min-width 0.2s;
