@@ -72,7 +72,7 @@ const ScheduleBuilder = () => {
   //handles courses being dropped onto the schedule
   const onDropFromOutside = () => {
     //if this course is already in the schedule, do nothing
-    if (events.filter(e => e.itemID == draggedEvent.itemID).length > 0) {
+    if (events.filter(e => e.number == draggedEvent.number && e.semester == draggedEvent.semester).length > 0) {
       setDraggedEvent(null);
       return;
     }
@@ -101,12 +101,20 @@ const ScheduleBuilder = () => {
         //get the ids of the other events that refer to this course
         let refs = ids.filter((val) => val != newId);
         var event = { ...draggedEvent, start, end, id: newId, refs: refs, backgroundColor };
-        console.log(event); //LOG
         newId++;
         newEvent(event);
       }
     }
     setDraggedEvent(null);
+  }
+
+  const removeEvent = () => {
+    let newEvents = events;
+    //array of ids of all references to the clicked event
+    let refs = [clickedEvent.id, ...(clickedEvent.refs)];
+    newEvents = newEvents.filter((e) => !(refs.includes(e.id)));
+    setEvents(newEvents);
+    setIsOpen(false);
   }
 
   //Shows a course's information and option to remove when double clicked
@@ -136,7 +144,7 @@ const ScheduleBuilder = () => {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <button onClick={{/* TODO make func to remove event with id and events with ref ids from events*/ }}>
+          <button onClick={removeEvent}>
             Remove
           </button>
           <button onClick={() => setIsOpen(false)}>
@@ -201,7 +209,6 @@ const ScheduleBuilder = () => {
 
         //get all rows of data
         let rows = res.findAll("tr");
-        let id = 0;
 
         //skip first row, because it is a blank spacer
         //iterate through each row of results to parse
@@ -275,7 +282,6 @@ const ScheduleBuilder = () => {
 
             //create an object for this listing
             let item = {
-              "itemID": id,
               "title": course,
               "start": new Date(startTime),
               "end": new Date(endTime),
@@ -292,7 +298,6 @@ const ScheduleBuilder = () => {
               "cap": cap ?? "",
               "isDraggable": false
             };
-            id++;
             //append item to results
             data.push(item);
           }
