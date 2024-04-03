@@ -47,3 +47,36 @@
 .sidenav .closebtn:active {
   color: #f1f1f1;
 }
+
+.Profile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 15px; /* Margin from the top */
+}
+
+.ProfileImage {
+  margin-bottom: 15px; /* Margin below the image */
+  margin-left: calc(10% - 300px);
+}
+
+.ProfileImage img {
+  width: 400px; /* Set the image width to 400 pixels */
+  height: 400px; /* Set the image height to 400 pixels */
+}
+
+.ProfileInfo {
+  border: 5px solid #000; /* Border around the profile information */
+  border-radius: 35px; /* Rounded border corners */
+  background-color: #f7f7f6;
+  padding: 20px; /* Padding inside the border */
+  margin-top: 20px; /* Margin from the top */
+  max-width: 400px; /* Limit the width of the profile information */
+  text-align: left; /* Align text to the left */
+}
+
+.ProfileInfo p {
+  margin: 10px 0; /* Margin between paragraphs */
+  font-size: 18px; /* Font size of the profile information */
+  color:  #3b1901; /* Text color */
+}

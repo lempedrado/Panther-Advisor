@@ -14,7 +14,7 @@ const Requirements = () => {
         <header className="App-header">
         <SideNav
             onSelect={(selected) => {
-              if(selected == "LogOut")
+              if(selected === "LogOut")
               {
                 navigate("/");
                 return;

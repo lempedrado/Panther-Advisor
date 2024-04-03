@@ -4,6 +4,7 @@ import './index.css';
 import reportWebVitals from './reportWebVitals';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 
+
 //import Routes
 import Login from './Login';
 import ScheduleBuilder from './ScheduleBuilder';
@@ -11,6 +12,8 @@ import Account from './Account';
 import CourseMaps from './CourseMaps';
 import About from './About';
 import Requirements from './Requirements';
+import Registration from './Registration';
+import NewPassword from './NewPassword';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
@@ -42,6 +45,14 @@ root.render(
           path="/Requirements"
           element={<Requirements />}
         />
+        <Route 
+        path="/Registration" 
+        element={<Registration />} 
+        />
+        <Route 
+        path="/NewPassword" 
+        element={<NewPassword />} 
+        /> 
       </Routes>
     </BrowserRouter>
   </React.StrictMode>

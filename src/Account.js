@@ -1,20 +1,69 @@
 import { useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import './ScheduleBuilder.css';
-
+import './Account.css';
+import { useState, useEffect } from 'react';
 import SideNav, { Toggle, Nav, NavItem, NavIcon, NavText } from '@trendmicro/react-sidenav';
 import '@trendmicro/react-sidenav/dist/react-sidenav.css';
+import { auth, database } from './firebase';
 
 const Account = () => {
   const navigate = useNavigate();
+  const [userEmail, setUserEmail] = useState('');
+  const [name, setName] = useState('');
+  const [dob, setDOB] = useState('');
+  const [adelphiID, setAdelphiID] = useState('');
+  const [image, setImage] = useState(null);
 
+  useEffect(() => {
+    // Fetch user's email from Firebase Auth
+    const currentUser = auth.currentUser;
+    if (currentUser) {
+      setUserEmail(currentUser.email);
+    }
+  }, []);
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    const reader = new FileReader();
+
+    reader.onloadend = () => {
+      setImage(reader.result);
+    };
+
+    if (file) {
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSave = () => {
+    const databaseRef = database.ref('users');
+    // Prepare user data object
+    const userData = {
+      name: name,
+      dob: dob,
+      adelphiID: adelphiID,
+      email: userEmail,
+      // Add more fields if needed
+    };
+
+    // Save user data to Firebase Realtime Database
+    database.ref('users/' + auth.currentUser.uid).set(userData)
+      .then(() => {
+        console.log('User data saved successfully');
+        // You may want to show a success message to the user
+      })
+      .catch((error) => {
+        console.error('Error saving user data:', error);
+        // Handle error, display error message to the user, etc.
+      });
+  };
   return (
-    <body className="App">
+    <div className="App">
       <div className="Header">
         <header className="App-header">
-        <SideNav
+          <SideNav
             onSelect={(selected) => {
-              if(selected == "LogOut")
+              if(selected === "LogOut")
               {
                 navigate("/");
                 return;
@@ -69,14 +118,30 @@ const Account = () => {
             </Nav>
           </SideNav>
           <div className="logo" style={{ fontSize: 60 }}>
-            {/* Make a logo that links to Profile
-            <Link to='/'>Panther Advisor</Link> */}
             Account
           </div>
         </header>
       </div>
-      
-    </body>
+      <div className="Profile">
+      <div className="ProfileImage">
+          <input type="file" onChange={handleImageChange} />
+          {image && (
+            <img src={image} alt="Profile" style={{ width: 520, height: 400 }} />
+          )}
+        </div>
+        <div className="ProfileInfo">
+          {/* Display user's email */}
+          <p>Name: <input type="text" value={name} onChange={(e) => setName(e.target.value)} /></p>
+          <p>DOB: <input type="text" value={dob} onChange={(e) => setDOB(e.target.value)} /></p>
+          <p>Adelphi ID number: <input type="text" value={adelphiID} onChange={(e) => setAdelphiID(e.target.value)} /></p>
+          <p>Adelphi Email: {userEmail}</p>
+        </div>
+      </div>
+      <div style={{ marginTop: '20px' }}> {}
+        <button onClick={handleSave}>Save</button>
+        <button><Link to='/'>Log Out</Link></button>
+      </div>
+    </div>
   );
 }
 
