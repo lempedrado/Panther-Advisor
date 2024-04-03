@@ -1,3 +1,4 @@
+import './General.css';
 import './Login.css';
 import {Link} from 'react-router-dom';
 import { auth } from './firebase';
