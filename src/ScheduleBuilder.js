@@ -23,6 +23,7 @@ const COLORS = ["AliceBlue", "AntiqueWhite", "Aqua", "Aquamarine", "Beige", "Bis
 let color = 0;
 
 const ScheduleBuilder = () => {
+  
   const navigate = useNavigate();
 
   const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];

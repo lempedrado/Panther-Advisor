@@ -3,6 +3,6 @@ import Login from './Login';
 
 test('renders learn react link', () => {
   render(<Login />);
-  const linkElement = screen.getByText(/learn react/i);
+  const linkElement = screen.getByText(/Panther Advisor/i);
   expect(linkElement).toBeInTheDocument();
 });
