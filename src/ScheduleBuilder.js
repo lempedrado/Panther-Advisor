@@ -43,9 +43,9 @@ const ScheduleBuilder = () => {
   const [isOpen, setIsOpen] = useState(false);
   // State variables for search filters
   const [searchFilters, setSearchFilters] = useState({
-    //TODO "startTime": undefined,
     "department[]": undefined,    //allows multiple but we will limit to one option
     "level": "all",               //frosh, soph, junior, senior, ugrad
+    "semester": "all",
     "courseName": undefined,
     "professorName": undefined,
     "status": undefined,          //true if selected
@@ -57,7 +57,7 @@ const ScheduleBuilder = () => {
   });
   //format the days of the week in Calendar
   const formats = { "dayFormat": "ddd" };
-  const baseURL = "https://search.adelphi.edu/course-search/";
+  const baseURL = "https://search.adelphi.edu/course-search/?";
 
   const handleDragStart = useCallback((event) => setDraggedEvent(event), []);
 
@@ -157,7 +157,7 @@ const ScheduleBuilder = () => {
 
   //creates the URL with form input values to ping results for scraper
   function appendURL() {
-    let post = "?semester=all&";
+    let post = "&";
     Object.keys(searchFilters).map((key) => {
       var val = searchFilters[key];
       if (val !== undefined) {
@@ -236,6 +236,14 @@ const ScheduleBuilder = () => {
 
             //semester info
             let sem = children[1].text;
+            if(sem === "")
+            {
+              let s = searchFilters.semester.split("/");
+              if(s[1] === "02")
+                sem = "Spring 20" + s[0];
+              if(s[1] === "09")
+                sem = "Fall 20" + s[0];
+            }
 
             //meeting days
             let temp = children[2].text.split("/");
@@ -452,6 +460,12 @@ const ScheduleBuilder = () => {
                   <option value="ugrad">Undergraduate</option>
                 </select>
                 <br />
+                <select className='search-box' name="semester" onChange={handleFilterChange}>
+                  <option value="all">All Semesters</option>
+                  <option value="24/02/*">Spring 2024</option>
+                  <option value="24/09/*">Fall 2024</option>
+                </select>
+                <br />
                 <input className='search-box' type="text" name="courseName" placeholder="Course" value={searchFilters["courseName"] ?? ""} onChange={handleFilterChange} />
                 <br />
                 <input className='search-box' type="text" name="professorName" placeholder="Professor" value={searchFilters["professorName"] ?? ""} onChange={handleFilterChange} />
@@ -580,7 +594,6 @@ const ScheduleBuilder = () => {
                     &nbsp;Quantitative Reasoning
                   </label>
                 </fieldset>
-                {/* TODO <input type="text" name="startTime" placeholder="Start Time" value={searchFilters.startTime} onChange={handleFilterChange} /> */}
               </div>
             </div>
             <input type="submit" value="Search" />
