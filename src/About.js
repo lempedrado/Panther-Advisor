@@ -1,8 +1,6 @@
-import { useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import './General.css';
 import './About.css';
-import schedule from './images/schedule.png';
 
 import SideNav, { Toggle, Nav, NavItem, NavIcon, NavText } from '@trendmicro/react-sidenav';
 
@@ -15,7 +13,8 @@ const About = () => {
         <header className="App-header">
         <SideNav
             onSelect={(selected) => {
-              if (selected === "LogOut") {
+              if(selected === "LogOut")
+              {
                 navigate("/");
               } else {
                 const to = '/' + selected;
