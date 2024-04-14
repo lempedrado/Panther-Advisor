@@ -23,7 +23,7 @@ const COLORS = ["AliceBlue", "AntiqueWhite", "Aqua", "Aquamarine", "Beige", "Bis
 let color = 0;
 
 const ScheduleBuilder = () => {
-  
+
   const navigate = useNavigate();
 
   const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -205,114 +205,18 @@ const ScheduleBuilder = () => {
       let res = soup.findAll('address');
       //if no address tag is found, there are results for this search
       if (res.length == 0) {
-        //get the table of results
-        res = soup.findAll("table", "course-search-results")[0];
+        //get the number of total results for this search
+        let total = soup.find('strong');
+        total = total?.text?.split("\n")?.[0]?.slice(0, -10)?.split(" ");
+        total = parseInt(total?.[2]);
+        let pages = total / 100;
 
-        //get all rows of data
-        let rows = res.findAll("tr");
-
-        //skip first row, because it is a blank spacer
-        //iterate through each row of results to parse
-        for (let i = 1; i < rows.length; i++) {
-          let row = rows[i];
-          let child = row.nextElement;
-          if (child.attrs.class == "dep")
-            var dep = child.text;
-          else if (child.attrs.class == "crs")
-            var course = child.text;
-          else if (row.attrs.class == "details") {
-            //course row
-            let num = row.nextElement;  //td
-            const children = num.nextSiblings;  //remaining tds
-            let ref = "";
-            if (num.nextElement.attrs.href != undefined)
-              ref = baseURL + num.nextElement.attrs.href.replace("&amp;", "&");
-            num = num.text;
-
-            //instructor row
-            let instructor = children[0].text;
-            let tempRef = children[0].nextElement;
-            let iRef = (tempRef.attrs != undefined && tempRef.attrs.href != undefined) ? tempRef.attrs.href : "";
-
-            //semester info
-            let sem = children[1].text;
-            if(sem === "")
-            {
-              let s = searchFilters.semester.split("/");
-              if(s[1] === "02")
-                sem = "Spring 20" + s[0];
-              if(s[1] === "09")
-                sem = "Fall 20" + s[0];
-            }
-
-            //meeting days
-            let temp = children[2].text.split("/");
-            //days is a list of numbers that correspond to the day of the week
-            let days = [];
-            temp.forEach((day) => {
-              if (daysOfWeek.indexOf(day) != -1)
-                //+1 to get the day number for the Date object
-                days.push(daysOfWeek.indexOf(day) + 1);
-            });
-
-            //meeting times
-            let times = [];
-            if (children[3].text == "") { times = [undefined, undefined]; }
-            else {
-              let t = children[3].text.split(" - ");
-              let start = t[0].split(":");
-              let end = t[1].split(":");
-              let d = dateRef;
-              if (start[1].endsWith("pm"))
-                d.setHours(12 + (start[0] % 12));
-              else
-                d.setHours(start[0]);
-
-              d.setMinutes(start[1].slice(0, 3));
-              times.push(d.getTime());
-
-              if (end[1].endsWith("pm"))
-                d.setHours(12 + (end[0] % 12));
-              else
-                d.setHours(end[0]);
-
-              d.setMinutes(end[1].slice(0, 3));
-              times.push(d.getTime());
-            }
-            let startTime = times[0];
-            let endTime = times[1];
-
-            //location, credits and notes
-            let location = children[4].text;
-            let credits = children[5].text;
-            let cap = children[6].text;
-
-            let allDay = (startTime == undefined && endTime == undefined);
-
-            //create an object for this listing
-            let item = {
-              "title": course,
-              "start": new Date(startTime),
-              "end": new Date(endTime),
-              "allDay": allDay,
-              "number": num,
-              "department": dep,
-              "courseRef": ref,
-              "instructor": instructor,
-              "instructorRef": iRef,
-              "semester": sem,
-              "days": days ?? [],
-              "location": location,
-              "credits": credits ?? "",
-              "cap": cap ?? "",
-              "isDraggable": false
-            };
-            //append item to results
-            data.push(item);
-          }
+        //compile the results from all the results pages
+        for (let i = 0; i < pages; i += 1) {
+          let page = await getResults(link, i * 100);
+          data = [...data, ...page];
         }
       }
-
       setSubmitted(true);
       setResults(data);
     } catch (error) {
@@ -321,6 +225,129 @@ const ScheduleBuilder = () => {
     // Perform search based on searchFilters state
     console.log('Performing search with filters:', searchFilters);
   };
+
+  // Scrapes and returns the results from the search page
+  const getResults = async (link, offset) => {
+    const proxy = 'https://cors-anywhere.herokuapp.com/' + link + "&startrow=" + offset;
+    try {
+      //Fetch HTML content of the search results
+      const response = await axios.get(proxy);
+      const html = response.data;
+      //Parse HTML content with JSSoup
+      var soup = new JSSoup(html);
+
+      let data = [];
+      //get the table of results
+      let res = soup.findAll("table", "course-search-results")[0];
+
+      //get all rows of data
+      let rows = res.findAll("tr");
+
+      //skip first row, because it is a blank spacer
+      //iterate through each row of results to parse
+      for (let i = 1; i < rows.length; i++) {
+        let row = rows[i];
+        let child = row.nextElement;
+        if (child.attrs.class == "dep")
+          var dep = child.text;
+        else if (child.attrs.class == "crs")
+          var course = child.text;
+        else if (row.attrs.class == "details") {
+          //course row
+          let num = row.nextElement;  //td
+          const children = num.nextSiblings;  //remaining tds
+          let ref = "";
+          if (num.nextElement.attrs.href != undefined)
+            ref = baseURL + num.nextElement.attrs.href.replace("&amp;", "&");
+          num = num.text;
+
+          //instructor row
+          let instructor = children[0].text;
+          let tempRef = children[0].nextElement;
+          let iRef = (tempRef.attrs != undefined && tempRef.attrs.href != undefined) ? tempRef.attrs.href : "";
+
+          //semester info
+          let sem = children[1].text;
+          if (sem === "") {
+            let s = searchFilters.semester.split("/");
+            if (s[1] === "02")
+              sem = "Spring 20" + s[0];
+            if (s[1] === "09")
+              sem = "Fall 20" + s[0];
+          }
+
+          //meeting days
+          let temp = children[2].text.split("/");
+          //days is a list of numbers that correspond to the day of the week
+          let days = [];
+          temp.forEach((day) => {
+            if (daysOfWeek.indexOf(day) != -1)
+              //+1 to get the day number for the Date object
+              days.push(daysOfWeek.indexOf(day) + 1);
+          });
+
+          //meeting times
+          let times = [];
+          if (children[3].text == "") { times = [undefined, undefined]; }
+          else {
+            let t = children[3].text.split(" - ");
+            let start = t[0].split(":");
+            let end = t[1].split(":");
+            let d = dateRef;
+            if (start[1].endsWith("pm"))
+              d.setHours(12 + (start[0] % 12));
+            else
+              d.setHours(start[0]);
+
+            d.setMinutes(start[1].slice(0, 3));
+            times.push(d.getTime());
+
+            if (end[1].endsWith("pm"))
+              d.setHours(12 + (end[0] % 12));
+            else
+              d.setHours(end[0]);
+
+            d.setMinutes(end[1].slice(0, 3));
+            times.push(d.getTime());
+          }
+          let startTime = times[0];
+          let endTime = times[1];
+
+          //location, credits and notes
+          let location = children[4].text;
+          let credits = children[5].text;
+          let cap = children[6].text;
+
+          let allDay = (startTime == undefined && endTime == undefined);
+
+          //create an object for this listing
+          let item = {
+            "title": course,
+            "start": new Date(startTime),
+            "end": new Date(endTime),
+            "allDay": allDay,
+            "number": num,
+            "department": dep,
+            "courseRef": ref,
+            "instructor": instructor,
+            "instructorRef": iRef,
+            "semester": sem,
+            "days": days ?? [],
+            "location": location,
+            "credits": credits ?? "",
+            "cap": cap ?? "",
+            "isDraggable": false
+          };
+          //append item to results
+          data.push(item);
+        }
+      }
+      return data;
+    }
+    catch (error) {
+      console.error('Error occured: ', error);
+    }
+  }
 
   const renderResults = () => {
     if (results.length == 0)
