@@ -7,6 +7,7 @@ import './Account.css';
 
 import SideNav, { Toggle, Nav, NavItem, NavIcon, NavText } from '@trendmicro/react-sidenav';
 import '@trendmicro/react-sidenav/dist/react-sidenav.css';
+import { ref, set, get } from 'firebase/database';
 import { auth, database } from './firebase';
 
 const Account = () => {
@@ -16,12 +17,28 @@ const Account = () => {
   const [dob, setDOB] = useState('');
   const [adelphiID, setAdelphiID] = useState('');
   const [image, setImage] = useState(null);
+  const [userDataLoaded, setUserDataLoaded] = useState(false);
 
   useEffect(() => {
-    // Fetch user's email from Firebase Auth
     const currentUser = auth.currentUser;
     if (currentUser) {
       setUserEmail(currentUser.email);
+      // Fetch user data from Firebase if available
+      get(ref(database, 'users/' + currentUser.uid))
+        .then((snapshot) => {
+          if (snapshot.exists()) {
+            const userData = snapshot.val();
+            setName(userData.name);
+            setDOB(userData.dob);
+            setAdelphiID(userData.adelphiID);
+            setUserDataLoaded(true);
+          } else {
+            console.log('No user data available');
+          }
+        })
+        .catch((error) => {
+          console.error('Error fetching user data:', error);
+        });
     }
   }, []);
 
@@ -39,7 +56,8 @@ const Account = () => {
   };
 
   const handleSave = () => {
-    const databaseRef = database.ref('users');
+    // Create a reference to the user's data in the database
+    const userRef = ref(database, 'users/' + auth.currentUser.uid);
     // Prepare user data object
     const userData = {
       name: name,
@@ -49,15 +67,14 @@ const Account = () => {
       // Add more fields if needed
     };
 
-    // Save user data to Firebase Realtime Database
-    database.ref('users/' + auth.currentUser.uid).set(userData)
+    // Set the user data at this database reference
+    set(userRef, userData)
       .then(() => {
         console.log('User data saved successfully');
-        // You may want to show a success message to the user
+        setUserDataLoaded(true);
       })
       .catch((error) => {
         console.error('Error saving user data:', error);
-        // Handle error, display error message to the user, etc.
       });
   };
   return (
@@ -133,12 +150,21 @@ const Account = () => {
           )}
         </div>
         <div className="ProfileInfo">
-          {/* Display user's email */}
-          <p>Name: <input type="text" value={name} onChange={(e) => setName(e.target.value)} /></p>
-          {/* make input type "date" and "number" */}
-          <p>DOB: <input type="text" value={dob} onChange={(e) => setDOB(e.target.value)} /></p>
-          <p>Adelphi ID number: <input type="text" value={adelphiID} onChange={(e) => setAdelphiID(e.target.value)} /></p>
-          <p>Adelphi Email: {userEmail}</p>
+          {userDataLoaded ? (
+            <>
+              <p>Name: {name}</p>
+              <p>DOB: {dob}</p>
+              <p>Adelphi ID number: {adelphiID}</p>
+              <p>Adelphi Email: {userEmail}</p>
+            </>
+          ) : (
+            <>
+              <p>Name: <input type="text" value={name} onChange={(e) => setName(e.target.value)} /></p>
+              <p>DOB: <input type="text" value={dob} onChange={(e) => setDOB(e.target.value)} /></p>
+              <p>Adelphi ID number: <input type="text" value={adelphiID} onChange={(e) => setAdelphiID(e.target.value)} /></p>
+              <p>Adelphi Email: {userEmail}</p>
+            </>
+          )}
         </div>
       </div>
       <div style={{ marginTop: '20px' }}> {}
