@@ -207,7 +207,10 @@ const ScheduleBuilder = () => {
       if (res.length == 0) {
         //get the number of total results for this search
         let total = soup.find('strong');
-        total = total?.text?.split("\n")?.[0]?.slice(0, -10)?.split(" ");
+        if(searchFilters.sem === "all")
+          total = total?.text?.split("\n")?.[0]?.slice(0, -10)?.split(" ");
+        else
+          total = total?.text?.split(" ");
         total = parseInt(total?.[2]);
         let pages = total / 100;
 
