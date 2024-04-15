@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import './General.css';
 import './About.css';
+import { FaGithub } from "react-icons/fa";
 
 import SideNav, { Toggle, Nav, NavItem, NavIcon, NavText } from '@trendmicro/react-sidenav';
 
@@ -74,7 +75,6 @@ const About = () => {
           </div>
         </header>
       </div>
-      {/* Add the text content here */}
       <div className="about-content">
         <h2>What the website is for?</h2>
         <p>
@@ -101,7 +101,30 @@ const About = () => {
           students with a simple yet concise tool to easily manage and view which courses are required, available, best
           fit into their schedule, and more.
         </p>
+        <h2 style={{textAlign: "center"}}>Creators</h2>
+        <div class="github-link">
+          <a href="https://github.com/lempedrado/Panther-Advisor" target="_blank">
+            <FaGithub className="github-icon" />
+          </a>
+        </div>
       </div>
+      <div class="creators-section">
+        <div class="creator">
+            <h4>Adis Kolenovic</h4>
+            <p>Major: Software Engineering</p>
+            <p>Grade: Senior</p>
+        </div>
+        <div class="creator">
+            <h4>Lloyd Empedrado</h4>
+            <p>Major: Software Engineering</p>
+            <p>Grade: Senior</p>
+        </div>
+        <div class="creator">
+            <h4>Dagvadorj Mendsaikhan</h4>
+            <p>Major: Software Engineering</p>
+            <p>Grade: Senior</p>
+        </div>
+    </div>
     </body>
   );
 }
