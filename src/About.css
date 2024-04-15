@@ -1,12 +1,12 @@
 .about-content {
-  max-width: 800px;
+  max-width: 80%;
   margin: 0 auto;
   padding: 10px;
   margin-top: 10px;
   text-align: justify;
   line-height: 1.6;
   color: white;
-  font-size: 20px;
+  font-size: 30px;
   position: relative;
 }
 
@@ -50,11 +50,11 @@
 .creator h4 {
   margin: 0;
   color: white;
-  font-size: 24px;
+  font-size: 36px;
 }
 
 .creator p {
   margin: 5px 0;
   color: white;
-  font-size: 18px;
+  font-size: 28px;
 }
