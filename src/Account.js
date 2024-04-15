@@ -160,8 +160,8 @@ const Account = () => {
           ) : (
             <>
               <p>Name: <input type="text" value={name} onChange={(e) => setName(e.target.value)} /></p>
-              <p>DOB: <input type="text" value={dob} onChange={(e) => setDOB(e.target.value)} /></p>
-              <p>Adelphi ID number: <input type="text" value={adelphiID} onChange={(e) => setAdelphiID(e.target.value)} /></p>
+              <p>DOB: <input type="date" value={dob} onChange={(e) => setDOB(e.target.value)} /></p>
+              <p>Adelphi ID number: <input type="number" value={adelphiID} onChange={(e) => setAdelphiID(e.target.value)} /></p>
               <p>Adelphi Email: {userEmail}</p>
             </>
           )}
