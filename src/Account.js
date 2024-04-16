@@ -147,10 +147,12 @@ const handleSave = () => {
               </header>
           </div>
           <div className="Profile">
-              <div className="ProfileImage">
-                  <input type="file" onChange={handleImageChange} />
-                  {imageURL && <img src={imageURL} alt="Profile" className="centered-image" />}
-              </div>
+          <div className="ProfileImage">
+            <div className="file-upload-container">
+                <input type="file" onChange={handleImageChange} />
+            </div>
+            {imageURL && <img src={imageURL} alt="Profile" className="centered-image" />}
+        </div>
               <div className="ProfileInfo">
                   {userDataLoaded ? (
                       <>
