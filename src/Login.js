@@ -23,7 +23,7 @@ function Login() {
   };
 
   return (
-    <div className="App">
+    <body className="App">
       <div className="Header">
         <header className="App-header">
           <div className="logo" style={{ fontSize: 60 }}>Panther Advisor</div>
@@ -38,12 +38,12 @@ function Login() {
         <button onClick={handleLogin}>Login</button>
       </div>
       {error && <div className="error" style={{ margin: '10px 0', color: 'red' }}>{error}</div>}
-      <div>
+      <div className="other-options-container">
         <button><Link to='/Registration'>Create Account</Link></button>
         <button><Link to='/NewPassword'>Forgot Password?</Link></button>
         <Link to='/ScheduleBuilder'>Continue as Guest</Link>
       </div>
-    </div>
+    </body>
   );
 }
 
