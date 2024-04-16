@@ -44,7 +44,7 @@ function NewPassword() {
   };
 
   return (
-    <body className="App">
+    <div className="App">
       <div className="Header">
         <header className="App-header">
           <div className="logo" style={{ fontSize: 60 }}>Panther Advisor</div>
@@ -72,7 +72,7 @@ function NewPassword() {
       <div>
         <button><Link to='/'>Back</Link></button>
       </div>
-    </body>
+    </div>
   );
 }
 

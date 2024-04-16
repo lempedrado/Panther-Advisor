@@ -209,7 +209,7 @@ const CourseMaps = () => {
   };
 
   return (
-    <body className="App">
+    <div className="App">
       <div className="Header">
         <header className="App-header">
           <SideNav
@@ -220,8 +220,6 @@ const CourseMaps = () => {
                 const to = '/' + selected;
                 navigate(to);
               }
-              const to = "/" + selected;
-              navigate(to);
             }}
             className="sidenav"
           >
@@ -306,7 +304,7 @@ const CourseMaps = () => {
         </header>
       </div>
       
-    </body>
+    </div>
   );
 };
 
