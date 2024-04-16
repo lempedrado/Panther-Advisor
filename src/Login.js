@@ -38,7 +38,7 @@ function Login() {
         <button onClick={handleLogin}>Login</button>
       </div>
       {error && <div className="error" style={{ margin: '10px 0', color: 'red' }}>{error}</div>}
-      <div>
+      <div className="other-options-container">
         <button><Link to='/Registration'>Create Account</Link></button>
         <button><Link to='/NewPassword'>Forgot Password?</Link></button>
         <Link to='/ScheduleBuilder'>Continue as Guest</Link>
