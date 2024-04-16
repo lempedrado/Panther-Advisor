@@ -109,7 +109,7 @@ function CoursePlanner({ track, courses, onClose }) {
               {optionalGroups.map((group, groupIndex) => (
                 <React.Fragment key={`group-${groupIndex}`}>
                   <tr>
-                    <td colSpan="4" style={{textAlign: "center"}}><strong>{group.title}</strong></td>
+                    <td colSpan="4" style={{ textAlign: "center" }}><strong>{group.title}</strong></td>
                   </tr>
                   {group.courses.map(courseNumber => {
                     const course = filteredCourses.find(c => c.CourseNumber === courseNumber);
@@ -143,7 +143,7 @@ const CourseMaps = () => {
 
   const [trackInfo, setTrackInfo] = useState({});
 
-  
+
   useEffect(() => {
     const fetchCourses = async () => {
       try {
@@ -200,8 +200,8 @@ const CourseMaps = () => {
   //const [selectedSemester, setSelectedSemester] = useState("All Semesters");
 
   const handleFlip = (track) => {
-    setSelectedTrack(track); 
-    setIsModalOpen(true); 
+    setSelectedTrack(track);
+    setIsModalOpen(true);
   };
 
   const handleCloseModal = () => {
@@ -209,7 +209,7 @@ const CourseMaps = () => {
   };
 
   return (
-    <body className="App">
+    <div className="App">
       <div className="Header">
         <header className="App-header">
           <SideNav
@@ -220,8 +220,6 @@ const CourseMaps = () => {
                 const to = '/' + selected;
                 navigate(to);
               }
-              const to = "/" + selected;
-              navigate(to);
             }}
             className="sidenav"
           >
@@ -273,9 +271,8 @@ const CourseMaps = () => {
                 onClick={() => handleFlip(track)}
               >
                 <div
-                  className={`flip-card-inner ${
-                    flipState[track] ? "flipped" : ""
-                  }`}
+                  className={`flip-card-inner ${flipState[track] ? "flipped" : ""
+                    }`}
                 >
                   <div className="flip-card-front">
                     <h4>{track}</h4>
@@ -305,8 +302,8 @@ const CourseMaps = () => {
           </div>
         </header>
       </div>
-      
-    </body>
+
+    </div>
   );
 };
 
