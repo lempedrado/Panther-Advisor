@@ -1,0 +1,56 @@
+Department,CourseNumber,Title,Track,Credits
+MTH,141,Calculus I,Computer Science Core,4.00
+CSC,156,Discrete Structures,Computer Science Core,3.00
+CSC,171,Intro to Comp Programming (Lecture),Computer Science Core,4.00
+CSC,175,Intermediate Computer Programming,Computer Science Core,4.00
+CSC,190,Computer Science Orientation Seminar,Computer Science Core,1.00
+PHI,232,Computer &amp; Information Ethics,Computer Science Core,3.00
+CSC,263,Database Management System,Computer Science Core,3.00
+CSC,273,Data Structures,Computer Science Core,3.00
+CSC,301,C and C++ Programming,Computer Science Core,3.00
+CSC,344,Algorithms and Complexity,Computer Science Core,3.00
+CSC,450,Computer Networks,Computer Science Core,3.00
+CSC,453,Operating Systems,Computer Science Core,3.00
+CSC,481,Computer Science Senior Seminar I,Computer Science Core,1.00
+CSC,482,Computer Science Senior Seminar II,Computer Science Core,3.00
+CSC,470,Internship in Computer Science,Computer Science Core,1.00 to 3.00
+MTH,142,Calculus II,Software Engineering,4.00
+MTH,225,Statistics and Data Analytics,Software Engineering,3.00
+CSC,272,Principles Of Programming Languages,Software Engineering,3.00
+CSC,370,Computer Architecture and Organization,Software Engineering,3.00
+CSC,440,Software Engineering,Software Engineering,3.00
+CSC,233,Graphical User Interface Programming,Software Engineering,3.00
+CSC,360,Human-Computer Interaction,Software Engineering,3.00
+CSC,338,Mobile Application Development,Software Engineering,3.00
+CSC,350,Web Programming,Software Engineering,3.00
+MTH,114,Statistics for Natural  Sciences,Cybersecurity,3.00
+MTH,225,Statistics and Data Analytics,Cybersecurity,3.00
+CSC,280,Introduction to Cybersecurity,Cybersecurity,3.00
+CSC,282,Network and Cloud Security,Cybersecurity,3.00
+CSC,335,Introduction to Machine Learning,Cybersecurity,3.00
+CSC,381,Applied Cryptography,Cybersecurity,3.00
+CSC,382,Application Security,Cybersecurity,3.00
+MTH,142,Calculus II,Computer Graphics Programming,4.00
+CSC,237,Game Programming,Computer Graphics Programming,3.00
+MTH,250,Multivariable Mathematics,Computer Graphics Programming,4.00
+CSC,333,Computer Graphics and Image Processing,Computer Graphics Programming,3.00
+CSC,233,Graphical User Interface Programming,Computer Graphics Programming,3.00
+CSC,360,Human-Computer Interaction,Computer Graphics Programming,3.00
+CSC,337,3D Game Programming,Computer Graphics Programming,3.00
+CSC,418,Extended Reality Engineering,Computer Graphics Programming,3.00
+MTH,142,Calculus II,Foundations of Computer Science,4.00
+MTH,253,Linear Algebra,Foundations of Computer Science,4.00
+CSC,272,Principles Of Programming Languages,Foundations of Computer Science,3.00
+CSC,370,Computer Architecture and Organization,Foundations of Computer Science,3.00
+MTH,201,Bridge to Higher Mathematics,Foundations of Computer Science,3.00
+MTH,351,Number Theory,Foundations of Computer Science,3.00
+MTH,355,Symbolic Logic,Foundations of Computer Science,3.00
+MTH,384,Computational Mathematics,Foundations of Computer Science,3.00
+CHE,111,General Chemistry I,Applied Sciences,4.00
+PHY,113,Physics For Science Majors I,Applied Sciences,4.00
+PHY,114,Physics for Science Majors II,Applied Sciences,4.00
+MTH,142,Calculus II,Applied Sciences,4.00
+PHY,211,Mathematical Methods in Physics I,Applied Sciences,4.00
+MTH,243,Calculus III,Applied Sciences,4.00
+MTH,244,Introduction to Ordinary Differential Equations,Applied Sciences,3.00
+CSC,370,Computer Architecture and Organization,Applied Sciences,3.00
