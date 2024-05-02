@@ -191,10 +191,10 @@ const ScheduleBuilder = () => {
     //get the link of the search results
     const link = appendURL();
     console.log(link); //LOG
-    const proxy = 'https://cors-anywhere.herokuapp.com/' + link;
+    // const proxy = 'https://cors-anywhere.herokuapp.com/' + link;
     try {
       //Fetch HTML content of the search results
-      const response = await axios.get(proxy);
+      const response = await axios.get(link);
       const html = response.data;
       //Parse HTML content with JSSoup
       var soup = new JSSoup(html);
