@@ -191,40 +191,44 @@ const ScheduleBuilder = () => {
     //get the link of the search results
     const link = appendURL();
     console.log(link); //LOG
-    const proxy = 'https://cors-anywhere.herokuapp.com/' + link;
     try {
       //Fetch HTML content of the search results
+      const response = await axios.get(link);
+      const html = response.data;
+      //Parse HTML content with JSSoup
+      var soup = new JSSoup(html);
+    } catch (error) {
+      console.error('Error occured: ', error);
+      const proxy = 'https://cors-anywhere.herokuapp.com/' + link;
       const response = await axios.get(proxy);
       const html = response.data;
       //Parse HTML content with JSSoup
       var soup = new JSSoup(html);
-
-      let data = [];
-
-      //address tag is only present when there are no results
-      let res = soup.findAll('address');
-      //if no address tag is found, there are results for this search
-      if (res.length == 0) {
-        //get the number of total results for this search
-        let total = soup.find('strong');
-        if (searchFilters.sem === "all")
-          total = total?.text?.split("\n")?.[0]?.slice(0, -10)?.split(" ");
-        else
-          total = total?.text?.split(" ");
-        total = parseInt(total?.[2]);
-        let pages = total / 100;
-
-        //compile the results from all the results pages
-        for (let i = 0; i < pages; i += 1) {
-          let page = await getResults(link, i * 100);
-          data = [...data, ...page];
-        }
-      }
-      setSubmitted(true);
-      setResults(data);
-    } catch (error) {
-      console.error('Error occured: ', error);
     }
+
+    let data = [];
+
+    //address tag is only present when there are no results
+    let res = soup.findAll('address');
+    //if no address tag is found, there are results for this search
+    if (res.length == 0) {
+      //get the number of total results for this search
+      let total = soup.find('strong');
+      if (searchFilters.sem === "all")
+        total = total?.text?.split("\n")?.[0]?.slice(0, -10)?.split(" ");
+      else
+        total = total?.text?.split(" ");
+      total = parseInt(total?.[2]);
+      let pages = total / 100;
+
+      //compile the results from all the results pages
+      for (let i = 0; i < pages; i += 1) {
+        let page = await getResults(link, i * 100);
+        data = [...data, ...page];
+      }
+    }
+    setSubmitted(true);
+    setResults(data);
     // Perform search based on searchFilters state
     console.log('Performing search with filters:', searchFilters);
   };

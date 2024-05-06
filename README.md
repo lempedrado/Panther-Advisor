@@ -44,3 +44,5 @@ Site navigation done with [react-sidenav](https://github.com/trendmicro-frontend
 Schedule Builder's calendar and draggable objecs done with [react-big-calendar](https://github.com/jquense/react-big-calendar)
 
 Account information stored with [Google's Firebase](https://firebase.google.com/)
+
+Hosted by Microsoft Azure on [pantheradvisor.azurewebsites.net](pantheradvisor.azurewebsites.net)
